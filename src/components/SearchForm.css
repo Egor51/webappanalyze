@@ -115,18 +115,22 @@
 .room-option.active {
   border-color: var(--accent);
   background: var(--accent-gradient);
-  color: white;
+  color: white !important;
   box-shadow: var(--shadow);
   transform: translateY(-2px);
+  position: relative;
+  z-index: 1;
 }
 
 .room-option.active::before {
   left: 0;
 }
 
-.room-option > * {
+.room-option.active,
+.room-option.active * {
+  color: white !important;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .room-option:active {
