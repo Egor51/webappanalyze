@@ -1,0 +1,42 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--error);
+  color: white;
+  border-radius: 12px;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.error-message svg {
+  flex-shrink: 0;
+}
+
+.error-message p {
+  margin: 0;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 16px;
+  }
+}
+
