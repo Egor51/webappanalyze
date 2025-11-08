@@ -18,10 +18,18 @@ const formatDate = (dateString) => {
 }
 
 const Results = ({ data }) => {
-  const result = data?.[0]
+  // Обрабатываем данные: если это массив, берем первый элемент, иначе используем сам объект
+  const result = Array.isArray(data) ? data[0] : data
+
+  // Логирование для отладки
+  console.log('Results component - data:', data)
+  console.log('Results component - result:', result)
 
   const chartData = useMemo(() => {
-    if (!result?.analytics) return []
+    if (!result?.analytics) {
+      console.log('No analytics data in result')
+      return []
+    }
     return result.analytics.map((item) => ({
       date: formatDate(item.date),
       price: item.avgPrice,

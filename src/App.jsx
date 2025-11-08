@@ -72,7 +72,18 @@ function App() {
       
       console.log('Data:', data)
       
-      if (!data || (Array.isArray(data) && data.length === 0)) {
+      // Проверяем данные: могут быть массивом или объектом
+      if (!data) {
+        throw new Error('Данные не найдены')
+      }
+      
+      // Если данные - массив, проверяем что он не пустой
+      if (Array.isArray(data) && data.length === 0) {
+        throw new Error('Данные не найдены')
+      }
+      
+      // Если данные - объект, проверяем наличие обязательных полей
+      if (!Array.isArray(data) && !data.address && !data.price) {
         throw new Error('Данные не найдены')
       }
       
