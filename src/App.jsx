@@ -45,33 +45,26 @@ function App() {
         }
       }
       
-      const encodedAddress = encodeURIComponent(fullAddress)
-      const encodedCountRoom = encodeURIComponent(countRoom)
-      const url = `https://murmanclick.ru/ads/analytic/v1.1?street=${encodedAddress}&countRoom=${encodedCountRoom}`
+      const apiUrl = `https://murmanclick.ru/ads/analytic/v1.1?street=${encodeURIComponent(fullAddress)}&countRoom=${encodeURIComponent(countRoom)}`
       
-      // Логирование для отладки (можно убрать в продакшене)
-      console.log('Запрос к API:', url)
+      // Логирование для отладки
+      console.log('Запрос к API:', apiUrl)
       
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      })
+      const response = await fetch(apiUrl)
       
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Ошибка API:', response.status, errorText)
-        throw new Error(`Ошибка ${response.status}: ${response.statusText}`)
+        throw new Error(`Сервер вернул ошибку с кодом ${response.status}`)
       }
       
-      const result = await response.json()
+      const data = await response.json()
       
-      if (!result || (Array.isArray(result) && result.length === 0)) {
+      console.log('Data:', data)
+      
+      if (!data || (Array.isArray(data) && data.length === 0)) {
         throw new Error('Данные не найдены')
       }
       
-      setData(result)
+      setData(data)
     } catch (err) {
       console.error('Ошибка при загрузке данных:', err)
       setError(err.message || 'Произошла ошибка при загрузке данных')
