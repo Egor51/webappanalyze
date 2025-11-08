@@ -10,6 +10,7 @@ function App() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -22,6 +23,23 @@ function App() {
       const theme = tg.colorScheme === 'dark' ? 'dark' : 'light'
       document.documentElement.setAttribute('data-theme', theme)
     }
+    
+    // Ждем загрузки DOM и минимальное время для плавности
+    const initApp = async () => {
+      // Ждем готовности DOM
+      if (document.readyState === 'loading') {
+        await new Promise(resolve => {
+          document.addEventListener('DOMContentLoaded', resolve)
+        })
+      }
+      
+      // Минимальное время для плавного появления (300ms)
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      setInitialLoading(false)
+    }
+    
+    initApp()
   }, [])
 
   const handleSearch = async (address, countRoom) => {
@@ -106,6 +124,17 @@ function App() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Показываем начальный лоадер
+  if (initialLoading) {
+    return (
+      <ThemeProvider>
+        <div className="app">
+          <Loader text="Загрузка приложения..." fullScreen={true} />
+        </div>
+      </ThemeProvider>
+    )
   }
 
   return (
