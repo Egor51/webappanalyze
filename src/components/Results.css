@@ -18,6 +18,10 @@
 
 .results-header {
   margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
 }
 
 .results-header h2 {
@@ -29,6 +33,40 @@
   background-clip: text;
   margin: 0;
   letter-spacing: -0.5px;
+  flex: 1;
+}
+
+.share-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.share-button:hover {
+  background: var(--accent-gradient);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.share-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.share-button svg {
+  flex-shrink: 0;
 }
 
 .result-card {
@@ -205,6 +243,21 @@
 }
 
 @media (max-width: 480px) {
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .results-header h2 {
+    font-size: 24px;
+  }
+  
+  .share-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .result-card {
     padding: 16px;
   }

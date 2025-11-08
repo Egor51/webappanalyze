@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import './Results.css'
 
@@ -18,12 +18,57 @@ const formatDate = (dateString) => {
 }
 
 const Results = ({ data }) => {
+  const [shareSuccess, setShareSuccess] = useState(false)
+  
   // Обрабатываем данные: если это массив, берем первый элемент, иначе используем сам объект
   const result = Array.isArray(data) ? data[0] : data
 
   // Логирование для отладки
   console.log('Results component - data:', data)
   console.log('Results component - result:', result)
+  
+  const handleShare = async () => {
+    const shareText = `🏠 Оценка недвижимости\n\n${result.address}\n\n💰 Средняя цена: ${result.price} ₽\n📊 За м²: ${result.priceMeter} ₽\n📉 Мин: ${result.priceMin} ₽\n📈 Макс: ${result.priceMax} ₽\n\n📅 Изменение за год: ${result.annualPriceChangePercent > 0 ? '+' : ''}${result.annualPriceChangePercent.toFixed(2)}%\n📅 Изменение за 3 месяца: ${result.threeMonthPriceChangePercent > 0 ? '+' : ''}${result.threeMonthPriceChangePercent.toFixed(2)}%\n\n📱 MurmanClick - Оценка недвижимости Мурманска`
+    
+    try {
+      // Пробуем использовать Web Share API
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Оценка недвижимости - MurmanClick',
+          text: shareText,
+        })
+        setShareSuccess(true)
+        setTimeout(() => setShareSuccess(false), 3000)
+        return
+      }
+      
+      // Пробуем использовать Telegram Web App Share
+      if (window.Telegram?.WebApp?.shareUrl) {
+        window.Telegram.WebApp.shareUrl(window.location.href, shareText)
+        setShareSuccess(true)
+        setTimeout(() => setShareSuccess(false), 3000)
+        return
+      }
+      
+      // Fallback: копирование в буфер обмена
+      await navigator.clipboard.writeText(shareText)
+      setShareSuccess(true)
+      setTimeout(() => setShareSuccess(false), 3000)
+    } catch (err) {
+      // Если пользователь отменил шаринг, не показываем ошибку
+      if (err.name !== 'AbortError') {
+        console.error('Ошибка при попытке поделиться:', err)
+        // Fallback на копирование
+        try {
+          await navigator.clipboard.writeText(shareText)
+          setShareSuccess(true)
+          setTimeout(() => setShareSuccess(false), 3000)
+        } catch (clipboardErr) {
+          console.error('Ошибка при копировании:', clipboardErr)
+        }
+      }
+    }
+  }
 
   const chartData = useMemo(() => {
     if (!result?.analytics) {
@@ -52,6 +97,31 @@ const Results = ({ data }) => {
     <div className="results">
       <div className="results-header">
         <h2>Результаты оценки</h2>
+        <button 
+          className="share-button"
+          onClick={handleShare}
+          title="Поделиться отчетом"
+        >
+          {shareSuccess ? (
+            <>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Скопировано!</span>
+            </>
+          ) : (
+            <>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+              <span>Поделиться</span>
+            </>
+          )}
+        </button>
       </div>
 
       <div className="result-card address-card">
