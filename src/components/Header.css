@@ -1,15 +1,17 @@
 .header {
-  background-color: var(--card-bg);
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
-  padding: 16px 20px;
+  padding: 20px 24px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 4px var(--shadow);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
 }
 
 .header-content {
-  max-width: 600px;
+  max-width: 680px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -19,48 +21,68 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .logo svg {
   color: var(--accent);
+  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.logo:hover svg {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .logo h1 {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 700;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
+  letter-spacing: -0.5px;
 }
 
 .theme-toggle {
-  background: none;
-  border: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 12px;
   color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  width: 44px;
+  height: 44px;
 }
 
 .theme-toggle:hover {
-  background-color: var(--bg-secondary);
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 
 .theme-toggle:active {
-  transform: scale(0.95);
+  transform: translateY(0) scale(0.95);
 }
 
 @media (max-width: 480px) {
   .header {
-    padding: 12px 16px;
+    padding: 16px 20px;
   }
   
   .logo h1 {
-    font-size: 18px;
+    font-size: 20px;
+  }
+  
+  .logo {
+    gap: 12px;
   }
 }
 

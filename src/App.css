@@ -2,13 +2,13 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-primary);
+  background: var(--bg-primary);
 }
 
 .main-content {
   flex: 1;
-  padding: 20px;
-  max-width: 600px;
+  padding: 24px 20px;
+  max-width: 680px;
   width: 100%;
   margin: 0 auto;
 }
@@ -17,21 +17,36 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  background-color: var(--error);
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%);
   color: white;
-  border-radius: 12px;
-  margin-top: 20px;
-  box-shadow: 0 2px 8px var(--shadow);
+  border-radius: 16px;
+  margin-top: 24px;
+  box-shadow: var(--shadow-lg);
+  animation: slideIn 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .error-message svg {
   flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .error-message p {
   margin: 0;
   font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 480px) {
