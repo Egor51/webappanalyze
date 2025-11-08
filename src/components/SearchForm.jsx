@@ -60,7 +60,7 @@ const SearchForm = ({ onSearch }) => {
               className={`room-option ${countRoom === option.value ? 'active' : ''}`}
               onClick={() => setCountRoom(option.value)}
             >
-              {option.label}
+              <span>{option.label}</span>
             </button>
           ))}
         </div>
@@ -71,7 +71,7 @@ const SearchForm = ({ onSearch }) => {
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.35-4.35"></path>
         </svg>
-        Найти оценку
+        Узнать цену
       </button>
     </form>
   )
