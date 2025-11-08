@@ -50,7 +50,19 @@ function App() {
       // Логирование для отладки
       console.log('Запрос к API:', apiUrl)
       
-      const response = await fetch(apiUrl)
+      let response
+      try {
+        response = await fetch(apiUrl)
+      } catch (fetchError) {
+        // Обработка ошибок сети и SSL
+        if (fetchError.message.includes('CERT') || fetchError.message.includes('certificate')) {
+          throw new Error('Проблема с сертификатом безопасности сервера. Пожалуйста, попробуйте позже.')
+        }
+        if (fetchError.message.includes('Failed to fetch') || fetchError.name === 'TypeError') {
+          throw new Error('Не удалось подключиться к серверу. Проверьте подключение к интернету.')
+        }
+        throw fetchError
+      }
       
       if (!response.ok) {
         throw new Error(`Сервер вернул ошибку с кодом ${response.status}`)
@@ -67,7 +79,19 @@ function App() {
       setData(data)
     } catch (err) {
       console.error('Ошибка при загрузке данных:', err)
-      setError(err.message || 'Произошла ошибка при загрузке данных')
+      
+      // Более понятные сообщения об ошибках
+      let errorMessage = 'Произошла ошибка при загрузке данных'
+      
+      if (err.message.includes('сертификат')) {
+        errorMessage = 'Проблема с сертификатом безопасности сервера. Пожалуйста, попробуйте позже или обратитесь к администратору.'
+      } else if (err.message.includes('подключиться')) {
+        errorMessage = 'Не удалось подключиться к серверу. Проверьте подключение к интернету.'
+      } else if (err.message) {
+        errorMessage = err.message
+      }
+      
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
