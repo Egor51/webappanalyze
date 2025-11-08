@@ -76,7 +76,7 @@ const Results = ({ data }) => {
         <div className="card-content">
           <div className="price-main">
             <span className="price-label">Средняя цена</span>
-            <span className="price-value">{result.price}</span>
+            <span className="price-value">{result.price} ₽</span>
           </div>
           <div className="price-details">
             <div className="price-item">
@@ -86,11 +86,11 @@ const Results = ({ data }) => {
             <div className="price-range">
               <div className="price-item">
                 <span className="price-item-label">Мин</span>
-                <span className="price-item-value">{result.priceMin}</span>
+                <span className="price-item-value">{result.priceMin} ₽</span>
               </div>
               <div className="price-item">
                 <span className="price-item-label">Макс</span>
-                <span className="price-item-value">{result.priceMax}</span>
+                <span className="price-item-value">{result.priceMax} ₽</span>
               </div>
             </div>
           </div>
@@ -123,7 +123,7 @@ const Results = ({ data }) => {
                 <YAxis 
                   stroke="var(--text-secondary)"
                   tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-                  tickFormatter={(value) => `${(value / 1000000).toFixed(1)}М`}
+                  tickFormatter={(value) => `${(value / 1000000).toFixed(1)}М ₽`}
                 />
                 <Tooltip
                   contentStyle={{
