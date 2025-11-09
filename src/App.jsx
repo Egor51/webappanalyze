@@ -11,6 +11,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [initialLoading, setInitialLoading] = useState(true)
+  const [telegramUser, setTelegramUser] = useState(null)
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -22,6 +23,35 @@ function App() {
       // Устанавливаем тему Telegram
       const theme = tg.colorScheme === 'dark' ? 'dark' : 'light'
       document.documentElement.setAttribute('data-theme', theme)
+      
+      // Получаем данные пользователя из Telegram
+      const user = tg.initDataUnsafe?.user
+      if (user) {
+        setTelegramUser(user)
+        console.log('Данные пользователя Telegram:', {
+          id: user.id,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          username: user.username,
+          languageCode: user.language_code,
+          isPremium: user.is_premium,
+          photoUrl: user.photo_url
+        })
+      }
+      
+      // Другие доступные данные:
+      console.log('Дополнительные данные Telegram:', {
+        version: tg.version,
+        platform: tg.platform,
+        colorScheme: tg.colorScheme,
+        viewportHeight: tg.viewportHeight,
+        viewportStableHeight: tg.viewportStableHeight,
+        headerColor: tg.headerColor,
+        backgroundColor: tg.backgroundColor,
+        isExpanded: tg.isExpanded,
+        initData: tg.initData, // Строка с данными инициализации
+        initDataUnsafe: tg.initDataUnsafe // Объект с распарсенными данными
+      })
     }
     
     // Ждем загрузки DOM и минимальное время для плавности
@@ -106,6 +136,31 @@ function App() {
       }
       
       setData(data)
+      
+      // Отправка данных на webhook после успешного анализа
+      try {
+        const webhookData = {
+          telegramId: telegramUser?.id || null,
+          address: fullAddress,
+          countRoom: countRoom,
+          firstName: telegramUser?.first_name || null
+        }
+        
+        // Отправляем запрос на webhook (не ждем ответа, чтобы не блокировать UI)
+        fetch('https://my-traffic.space/webhook-test/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(webhookData)
+        }).catch(webhookError => {
+          // Логируем ошибку, но не показываем пользователю
+          console.error('Ошибка при отправке данных на webhook:', webhookError)
+        })
+      } catch (webhookErr) {
+        // Игнорируем ошибки webhook, чтобы не влиять на основной функционал
+        console.error('Ошибка при подготовке данных для webhook:', webhookErr)
+      }
     } catch (err) {
       console.error('Ошибка при загрузке данных:', err)
       
