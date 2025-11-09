@@ -100,19 +100,71 @@ function App() {
       
       let response
       try {
-        response = await fetch(apiUrl)
+        // Пробуем сделать запрос с разными настройками для Chrome
+        response = await fetch(apiUrl, {
+          method: 'GET',
+          mode: 'cors',
+          cache: 'no-cache',
+          credentials: 'omit',
+          headers: {
+            'Accept': 'application/json',
+          },
+        })
       } catch (fetchError) {
         // Обработка ошибок сети и SSL
-        if (fetchError.message.includes('CERT') || fetchError.message.includes('certificate')) {
+        console.error('Fetch error details:', {
+          name: fetchError.name,
+          message: fetchError.message,
+          stack: fetchError.stack,
+          apiUrl: apiUrl
+        })
+        
+        // Проверяем, доступен ли сервер через другой метод
+        // Chrome может блокировать из-за SSL/CORS
+        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)
+        
+        if (isChrome) {
+          console.warn('Chrome detected - возможна проблема с CORS или SSL сертификатом')
+        }
+        
+        // Chrome может выдавать разные типы ошибок
+        if (fetchError.message && (
+          fetchError.message.includes('CERT') || 
+          fetchError.message.includes('certificate') ||
+          fetchError.message.includes('ERR_CERT') ||
+          fetchError.message.includes('ERR_SSL')
+        )) {
           throw new Error('Проблема с сертификатом безопасности сервера. Пожалуйста, попробуйте позже.')
         }
-        if (fetchError.message.includes('Failed to fetch') || fetchError.name === 'TypeError') {
-          throw new Error('Не удалось подключиться к серверу. Проверьте подключение к интернету.')
+        
+        // Обработка различных типов сетевых ошибок
+        if (
+          fetchError.name === 'TypeError' ||
+          fetchError.name === 'NetworkError' ||
+          fetchError.message.includes('Failed to fetch') ||
+          fetchError.message.includes('NetworkError') ||
+          fetchError.message.includes('Network request failed') ||
+          fetchError.message.includes('ERR_INTERNET_DISCONNECTED') ||
+          fetchError.message.includes('ERR_NETWORK_CHANGED') ||
+          fetchError.message.includes('ERR_CONNECTION_REFUSED') ||
+          fetchError.message.includes('ERR_CONNECTION_RESET')
+        ) {
+          // В Chrome "Failed to fetch" может означать разные проблемы
+          // Проверяем, есть ли реальное подключение к интернету
+          if (navigator.onLine === false) {
+            throw new Error('Нет подключения к интернету. Проверьте ваше соединение.')
+          }
+          
+          // Если есть интернет, но запрос не проходит, это может быть CORS или SSL
+          throw new Error('Не удалось подключиться к серверу. Возможна проблема с сертификатом безопасности или настройками CORS.')
         }
+        
         throw fetchError
       }
       
       if (!response.ok) {
+        const errorText = await response.text().catch(() => '')
+        console.error('Response error:', response.status, errorText)
         throw new Error(`Сервер вернул ошибку с кодом ${response.status}`)
       }
       
@@ -147,7 +199,7 @@ function App() {
         }
         
         // Отправляем запрос на webhook (не ждем ответа, чтобы не блокировать UI)
-        fetch('https://my-traffic.space/webhook/analyze', {
+        fetch('https://my-traffic.space/webhook-test/analyze', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

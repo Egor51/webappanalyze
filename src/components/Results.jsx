@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import './Results.css'
 
@@ -19,9 +19,30 @@ const formatDate = (dateString) => {
 
 const Results = ({ data }) => {
   const [shareSuccess, setShareSuccess] = useState(false)
+  const [chartExpanded, setChartExpanded] = useState(false)
+  const [showMinTooltip, setShowMinTooltip] = useState(false)
+  const [showMaxTooltip, setShowMaxTooltip] = useState(false)
   
   // Обрабатываем данные: если это массив, берем первый элемент, иначе используем сам объект
   const result = Array.isArray(data) ? data[0] : data
+  
+  // Закрываем подсказки при клике на экран
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Проверяем, что клик не был на кнопке подсказки
+      if (!event.target.closest('.tooltip-trigger')) {
+        setShowMinTooltip(false)
+        setShowMaxTooltip(false)
+      }
+    }
+    
+    if (showMinTooltip || showMaxTooltip) {
+      document.addEventListener('click', handleClickOutside)
+      return () => {
+        document.removeEventListener('click', handleClickOutside)
+      }
+    }
+  }, [showMinTooltip, showMaxTooltip])
 
   // Логирование для отладки
   console.log('Results component - data:', data)
@@ -137,15 +158,16 @@ const Results = ({ data }) => {
       </div>
 
       <div className="result-card price-card">
-        <div className="card-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="12" y1="1" x2="12" y2="23"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-          </svg>
+        <div className="card-header">
+          <div className="card-header-left">
+            <div className="card-icon">
+              <span style={{ fontSize: '24px', fontWeight: 'bold' }}>₽</span>
+            </div>
+            <h3>Средняя цена</h3>
+          </div>
         </div>
         <div className="card-content">
           <div className="price-main">
-            <span className="price-label">Средняя цена</span>
             <span className="price-value">{result.price} ₽</span>
           </div>
           <div className="price-details">
@@ -155,11 +177,55 @@ const Results = ({ data }) => {
             </div>
             <div className="price-range">
               <div className="price-item">
-                <span className="price-item-label">Мин</span>
+                <span className="price-item-label">
+                  Мин
+                  <button 
+                    className="tooltip-trigger"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowMinTooltip(!showMinTooltip)
+                      setShowMaxTooltip(false)
+                    }}
+                    aria-label="Подсказка"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                  </button>
+                  {showMinTooltip && (
+                    <div className="tooltip">
+                      Минимальная стоимость недвижимости на рынке за 6 мес
+                    </div>
+                  )}
+                </span>
                 <span className="price-item-value">{result.priceMin} ₽</span>
               </div>
               <div className="price-item">
-                <span className="price-item-label">Макс</span>
+                <span className="price-item-label">
+                  Макс
+                  <button 
+                    className="tooltip-trigger"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowMaxTooltip(!showMaxTooltip)
+                      setShowMinTooltip(false)
+                    }}
+                    aria-label="Подсказка"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                  </button>
+                  {showMaxTooltip && (
+                    <div className="tooltip">
+                      Максимальная стоимость недвижимости на рынке за 6 месяцев
+                    </div>
+                  )}
+                </span>
                 <span className="price-item-value">{result.priceMax} ₽</span>
               </div>
             </div>
@@ -167,68 +233,20 @@ const Results = ({ data }) => {
         </div>
       </div>
 
-      {chartData.length > 0 && (
-        <div className="result-card chart-card">
-          <div className="card-header">
-            <div className="card-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="22 6 13.5 15.5 8.5 10.5 2 17"></polyline>
-                <polyline points="16 6 22 6 22 12"></polyline>
-              </svg>
-            </div>
-            <h3>Динамика изменения цены</h3>
-          </div>
-          <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="var(--text-secondary)"
-                  tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis 
-                  stroke="var(--text-secondary)"
-                  tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-                  tickFormatter={(value) => `${(value / 1000000).toFixed(1)}М ₽`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--card-bg)',
-                    border: `1px solid var(--border)`,
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                  }}
-                  formatter={(value) => formatPrice(value)}
-                  labelStyle={{ color: 'var(--text-primary)' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="price"
-                  stroke="var(--accent)"
-                  strokeWidth={3}
-                  dot={{ fill: 'var(--accent)', r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+    
 
       <div className="result-card stats-card">
         <div className="card-header">
-          <div className="card-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="20" x2="18" y2="10"></line>
-              <line x1="12" y1="20" x2="12" y2="4"></line>
-              <line x1="6" y1="20" x2="6" y2="14"></line>
-            </svg>
+          <div className="card-header-left">
+            <div className="card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+            </div>
+            <h3>Изменение цены</h3>
           </div>
-          <h3>Изменение цены</h3>
         </div>
         <div className="stats-grid">
           <div className="stat-item">
@@ -253,6 +271,170 @@ const Results = ({ data }) => {
           </div>
         </div>
       </div>
+      {chartData.length > 0 && (
+        <>
+          <div className="result-card chart-card">
+            <div className="card-header">
+              <div className="card-header-left">
+                <div className="card-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="22 6 13.5 15.5 8.5 10.5 2 17"></polyline>
+                    <polyline points="16 6 22 6 22 12"></polyline>
+                  </svg>
+                </div>
+                <h3>Динамика изменения цены</h3>
+              </div>
+              <button 
+                className="chart-expand-button"
+                onClick={() => setChartExpanded(true)}
+                title="Увеличить график"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+              </button>
+            </div>
+            <div className="chart-container">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="var(--text-secondary)"
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis 
+                    stroke="var(--text-secondary)"
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                    tickFormatter={(value) => `${(value / 1000000).toFixed(1)}М`}
+                    width={50}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--card-bg)',
+                      border: `1px solid var(--border)`,
+                      borderRadius: '8px',
+                      color: 'var(--text-primary)',
+                      padding: '8px 12px',
+                    }}
+                    formatter={(value) => formatPrice(value)}
+                    labelStyle={{ color: 'var(--text-primary)', marginBottom: '4px' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="price"
+                    stroke="var(--accent)"
+                    strokeWidth={2.5}
+                    dot={{ fill: 'var(--accent)', r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="chart-disclaimer">
+              <div className="disclaimer-header">
+                <div className="disclaimer-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                </div>
+                <h4 className="disclaimer-title">Источник данных</h4>
+              </div>
+              <div className="disclaimer-content">
+                <p>
+                  Данные собраны из открытых источников и носят информационный характер. 
+                  Оценка основана на анализе объявлений о продаже недвижимости и может отличаться 
+                  от реальной рыночной стоимости.
+                </p>
+              </div>
+              <button 
+                className="consultation-button"
+                onClick={() => {
+                  // Открываем Telegram для консультации
+                  if (window.Telegram?.WebApp) {
+                    window.Telegram.WebApp.openTelegramLink('https://t.me/egor_018')
+                  } else {
+                    window.open('https://t.me/egor_018', '_blank')
+                  }
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  <line x1="9" y1="10" x2="15" y2="10"></line>
+                  <line x1="12" y1="7" x2="12" y2="13"></line>
+                </svg>
+                <span>Получить консультацию по оценке</span>
+              </button>
+            </div>
+          </div>
+
+          {chartExpanded && (
+            <div className="chart-modal" onClick={() => setChartExpanded(false)}>
+              <div className="chart-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="chart-modal-header">
+                  <h3>Динамика изменения цены</h3>
+                  <button 
+                    className="chart-modal-close"
+                    onClick={() => setChartExpanded(false)}
+                    aria-label="Закрыть"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+                <div className="chart-modal-body">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="var(--text-secondary)"
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                      />
+                      <YAxis 
+                        stroke="var(--text-secondary)"
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                        tickFormatter={(value) => `${(value / 1000000).toFixed(1)}М ₽`}
+                        width={60}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--card-bg)',
+                          border: `1px solid var(--border)`,
+                          borderRadius: '8px',
+                          color: 'var(--text-primary)',
+                          padding: '10px 14px',
+                        }}
+                        formatter={(value) => formatPrice(value)}
+                        labelStyle={{ color: 'var(--text-primary)', marginBottom: '6px', fontWeight: 600 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="price"
+                        stroke="var(--accent)"
+                        strokeWidth={3}
+                        dot={{ fill: 'var(--accent)', r: 4 }}
+                        activeDot={{ r: 7 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }
