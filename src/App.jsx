@@ -147,7 +147,7 @@ function App() {
         }
         
         // Отправляем запрос на webhook (не ждем ответа, чтобы не блокировать UI)
-        fetch('https://my-traffic.space/webhook-test/analyze', {
+        fetch('https://my-traffic.space/webhook/analyze', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
