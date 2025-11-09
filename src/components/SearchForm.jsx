@@ -16,6 +16,10 @@ const SearchForm = ({ onSearch }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (address.trim() && countRoom) {
+      // Отправка события в Яндекс.Метрику
+      if (window.ym) {
+        window.ym(105200711, 'reachGoal', 'vanalyze')
+      }
       onSearch(address.trim(), countRoom)
     }
   }
