@@ -1,0 +1,183 @@
+.instructions {
+  margin-top: 32px;
+  padding: 24px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  animation: fadeInUp 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.instructions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--accent-gradient);
+}
+
+.instructions-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.instructions-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 12px;
+}
+
+.instructions-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.instructions-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.instruction-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.step-number {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-gradient);
+  color: white;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.step-content {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.step-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.step-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.step-description strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.instructions-footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.info-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(59, 130, 246, 0.05) 100%);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.info-badge svg {
+  flex-shrink: 0;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.info-badge span {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .instructions {
+    padding: 20px;
+    margin-top: 24px;
+  }
+
+  .instructions-header {
+    margin-bottom: 20px;
+  }
+
+  .instructions-title {
+    font-size: 18px;
+  }
+
+  .instruction-step {
+    gap: 12px;
+  }
+
+  .step-number {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .step-title {
+    font-size: 15px;
+  }
+
+  .step-description {
+    font-size: 13px;
+  }
+
+  .info-badge {
+    padding: 10px 14px;
+  }
+
+  .info-badge span {
+    font-size: 12px;
+  }
+}
+

@@ -38,7 +38,7 @@ const SearchForm = ({ onSearch }) => {
           id="address"
           type="text"
           className="form-input"
-          placeholder="Мурманск Старостина д 53"
+          placeholder="Мурманск Александрова 30/2"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           required

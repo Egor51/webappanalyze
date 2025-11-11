@@ -4,6 +4,7 @@ import Header from './components/Header'
 import SearchForm from './components/SearchForm'
 import Results from './components/Results'
 import Loader from './components/Loader'
+import Instructions from './components/Instructions'
 import './App.css'
 
 function App() {
@@ -199,7 +200,7 @@ function App() {
         }
         
         // Отправляем запрос на webhook (не ждем ответа, чтобы не блокировать UI)
-        fetch('https://my-traffic.space/webhook-test/analyze', {
+        fetch('https://my-traffic.space/webhook/analyze', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -250,6 +251,7 @@ function App() {
         <Header />
         <main className="main-content">
           <SearchForm onSearch={handleSearch} />
+          {!data && !loading && !error && <Instructions />}
           {loading && <Loader />}
           {error && (
             <div className="error-message">
