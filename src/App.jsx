@@ -194,7 +194,7 @@ function App() {
       try {
         const webhookData = {
           telegramId: telegramUser?.id || null,
-          address: fullAddress,
+          address: data?.address || fullAddress,
           countRoom: countRoom,
           firstName: telegramUser?.first_name || null
         }
