@@ -286,7 +286,7 @@ function App() {
     return (
       <ThemeProvider>
         <div className="app">
-          <Loader text="Загрузка приложения..." fullScreen={true} />
+          <Loader text="murmanclick..." fullScreen={true} />
         </div>
       </ThemeProvider>
     )

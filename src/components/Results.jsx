@@ -1,5 +1,7 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 import './Results.css'
 
 const formatPrice = (price) => {
@@ -22,6 +24,8 @@ const Results = ({ data }) => {
   const [chartExpanded, setChartExpanded] = useState(false)
   const [showMinTooltip, setShowMinTooltip] = useState(false)
   const [showMaxTooltip, setShowMaxTooltip] = useState(false)
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+  const chartContainerRef = useRef(null)
   
   // Обрабатываем данные: если это массив, берем первый элемент, иначе используем сам объект
   const result = Array.isArray(data) ? data[0] : data
@@ -47,49 +51,6 @@ const Results = ({ data }) => {
   // Логирование для отладки
   console.log('Results component - data:', data)
   console.log('Results component - result:', result)
-  
-  const handleShare = async () => {
-    const shareText = `🏠 Оценка недвижимости\n\n${result.address}\n\n💰 Средняя цена: ${result.price} ₽\n📊 За м²: ${result.priceMeter} ₽\n📉 Мин: ${result.priceMin} ₽\n📈 Макс: ${result.priceMax} ₽\n\n📅 Изменение за год: ${result.annualPriceChangePercent > 0 ? '+' : ''}${result.annualPriceChangePercent.toFixed(2)}%\n📅 Изменение за 3 месяца: ${result.threeMonthPriceChangePercent > 0 ? '+' : ''}${result.threeMonthPriceChangePercent.toFixed(2)}%\n\n📱 MurmanClick - Оценка недвижимости Мурманска`
-    
-    try {
-      // Пробуем использовать Web Share API
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Оценка недвижимости - MurmanClick',
-          text: shareText,
-        })
-        setShareSuccess(true)
-        setTimeout(() => setShareSuccess(false), 3000)
-        return
-      }
-      
-      // Пробуем использовать Telegram Web App Share
-      if (window.Telegram?.WebApp?.shareUrl) {
-        window.Telegram.WebApp.shareUrl(window.location.href, shareText)
-        setShareSuccess(true)
-        setTimeout(() => setShareSuccess(false), 3000)
-        return
-      }
-      
-      // Fallback: копирование в буфер обмена
-      await navigator.clipboard.writeText(shareText)
-      setShareSuccess(true)
-      setTimeout(() => setShareSuccess(false), 3000)
-    } catch (err) {
-      // Если пользователь отменил шаринг, не показываем ошибку
-      if (err.name !== 'AbortError') {
-        console.error('Ошибка при попытке поделиться:', err)
-        // Fallback на копирование
-        try {
-          await navigator.clipboard.writeText(shareText)
-          setShareSuccess(true)
-          setTimeout(() => setShareSuccess(false), 3000)
-        } catch (clipboardErr) {
-          console.error('Ошибка при копировании:', clipboardErr)
-        }
-      }
-    }
-  }
 
   const chartData = useMemo(() => {
     if (!result?.analytics) {
@@ -102,6 +63,363 @@ const Results = ({ data }) => {
       fullDate: item.date,
     }))
   }, [result])
+  
+  const generatePDF = async () => {
+    setIsGeneratingPDF(true)
+    try {
+      // Создаем временный контейнер для PDF контента (оптимизированный размер)
+      const pdfContainer = document.createElement('div')
+      pdfContainer.style.position = 'absolute'
+      pdfContainer.style.left = '-9999px'
+      pdfContainer.style.width = '595px' // A4 width в пикселях при 72 DPI (меньше для оптимизации)
+      pdfContainer.style.backgroundColor = '#ffffff'
+      pdfContainer.style.padding = '30px'
+      pdfContainer.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+      pdfContainer.style.color = '#000000'
+      pdfContainer.style.lineHeight = '1.5'
+
+      // Заголовок
+      const header = document.createElement('div')
+      header.style.textAlign = 'center'
+      header.style.marginBottom = '20px'
+      
+      const title = document.createElement('h1')
+      title.textContent = 'Оценка недвижимости'
+      title.style.fontSize = '24px'
+      title.style.fontWeight = 'bold'
+      title.style.color = '#2196F3'
+      title.style.margin = '0 0 8px 0'
+      header.appendChild(title)
+      
+      const subtitle = document.createElement('div')
+      subtitle.textContent = 'MurmanClick'
+      subtitle.style.fontSize = '12px'
+      subtitle.style.color = '#666666'
+      header.appendChild(subtitle)
+      pdfContainer.appendChild(header)
+
+      // Адрес
+      const addressSection = document.createElement('div')
+      addressSection.style.marginBottom = '20px'
+      
+      const addressLabel = document.createElement('div')
+      addressLabel.textContent = 'Адрес:'
+      addressLabel.style.fontSize = '14px'
+      addressLabel.style.fontWeight = 'bold'
+      addressLabel.style.marginBottom = '6px'
+      addressSection.appendChild(addressLabel)
+      
+      const addressText = document.createElement('div')
+      addressText.textContent = result.address
+      addressText.style.fontSize = '12px'
+      addressText.style.color = '#333333'
+      addressSection.appendChild(addressText)
+      pdfContainer.appendChild(addressSection)
+
+      // Средняя цена
+      const priceSection = document.createElement('div')
+      priceSection.style.marginBottom = '20px'
+      
+      const priceLabel = document.createElement('div')
+      priceLabel.textContent = 'Средняя цена'
+      priceLabel.style.fontSize = '16px'
+      priceLabel.style.fontWeight = 'bold'
+      priceLabel.style.color = '#2196F3'
+      priceLabel.style.marginBottom = '8px'
+      priceSection.appendChild(priceLabel)
+      
+      const priceValue = document.createElement('div')
+      priceValue.textContent = `${result.price} ₽`
+      priceValue.style.fontSize = '22px'
+      priceValue.style.fontWeight = 'bold'
+      priceValue.style.marginBottom = '12px'
+      priceSection.appendChild(priceValue)
+      
+      // Детали цены
+      const priceDetails = document.createElement('div')
+      priceDetails.style.fontSize = '11px'
+      priceDetails.style.color = '#555555'
+      priceDetails.innerHTML = `
+        <div style="margin-bottom: 4px;">За м²: ${result.priceMeter} ₽</div>
+        <div style="margin-bottom: 4px;">Мин: ${result.priceMin} ₽</div>
+        <div>Макс: ${result.priceMax} ₽</div>
+      `
+      priceSection.appendChild(priceDetails)
+      pdfContainer.appendChild(priceSection)
+
+      // Изменение цены
+      const changeSection = document.createElement('div')
+      changeSection.style.marginBottom = '20px'
+      
+      const changeLabel = document.createElement('div')
+      changeLabel.textContent = 'Изменение цены'
+      changeLabel.style.fontSize = '16px'
+      changeLabel.style.fontWeight = 'bold'
+      changeLabel.style.marginBottom = '8px'
+      changeSection.appendChild(changeLabel)
+      
+      const annualChange = result.annualPriceChangePercent > 0 ? '+' : ''
+      const threeMonthChange = result.threeMonthPriceChangePercent > 0 ? '+' : ''
+      const changeDetails = document.createElement('div')
+      changeDetails.style.fontSize = '11px'
+      changeDetails.style.color = '#555555'
+      changeDetails.innerHTML = `
+        <div style="margin-bottom: 4px;">За год: ${annualChange}${result.annualPriceChangePercent.toFixed(2)}%</div>
+        <div>За 3 месяца: ${threeMonthChange}${result.threeMonthPriceChangePercent.toFixed(2)}%</div>
+      `
+      changeSection.appendChild(changeDetails)
+      pdfContainer.appendChild(changeSection)
+
+      // График (оптимизированный)
+      if (chartContainerRef.current && chartData.length > 0) {
+        try {
+          // Используем scale: 1 вместо 2 для уменьшения размера
+          const chartCanvas = await html2canvas(chartContainerRef.current, {
+            backgroundColor: '#ffffff',
+            scale: 1, // Уменьшено с 2 до 1 для оптимизации размера
+            logging: false,
+            useCORS: true,
+            width: 535, // Оптимизированная ширина
+            height: 250 // Оптимизированная высота
+          })
+          
+          // Конвертируем в JPEG с качеством 0.85 для уменьшения размера
+          const chartImage = chartCanvas.toDataURL('image/jpeg', 0.85)
+          
+          // Ждем загрузки изображения
+          await new Promise((resolve) => {
+            const chartImg = new Image()
+            chartImg.onload = resolve
+            chartImg.onerror = resolve
+            chartImg.src = chartImage
+          })
+          
+          const chartDiv = document.createElement('div')
+          chartDiv.style.marginBottom = '20px'
+          const chartImg = document.createElement('img')
+          chartImg.src = chartImage
+          chartImg.style.width = '100%'
+          chartImg.style.height = 'auto'
+          chartImg.style.display = 'block'
+          chartImg.style.maxWidth = '535px'
+          chartDiv.appendChild(chartImg)
+          pdfContainer.appendChild(chartDiv)
+        } catch (chartError) {
+          console.error('Ошибка при генерации графика:', chartError)
+        }
+      }
+
+      // Футер
+      const footer = document.createElement('div')
+      footer.style.marginTop = '20px'
+      footer.style.paddingTop = '15px'
+      footer.style.borderTop = '1px solid #e0e0e0'
+      footer.style.fontSize = '9px'
+      footer.style.color = '#999999'
+      
+      const date = new Date().toLocaleDateString('ru-RU', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      
+      footer.innerHTML = `
+        <div style="margin-bottom: 6px;">Отчет сгенерирован: ${date}</div>
+        <div>Данные собраны из открытых источников и носят информационный характер.</div>
+      `
+      pdfContainer.appendChild(footer)
+
+      // Добавляем контейнер в DOM
+      document.body.appendChild(pdfContainer)
+
+      // Ждем отрисовки контента
+      await new Promise(resolve => setTimeout(resolve, 50))
+
+      // Конвертируем в изображение с оптимизацией
+      const canvas = await html2canvas(pdfContainer, {
+        backgroundColor: '#ffffff',
+        scale: 1, // Уменьшено с 2 до 1 для оптимизации размера
+        logging: false,
+        useCORS: true,
+        width: pdfContainer.offsetWidth,
+        height: pdfContainer.offsetHeight
+      })
+
+      // Удаляем временный контейнер
+      document.body.removeChild(pdfContainer)
+
+      // Конвертируем в JPEG с качеством 0.85 для уменьшения размера
+      const imgData = canvas.toDataURL('image/jpeg', 0.85)
+
+      // Создаем PDF
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = pageWidth
+      const imgHeight = (canvas.height * pageWidth) / canvas.width
+
+      // Если контент не помещается на одну страницу, разбиваем на несколько
+      let heightLeft = imgHeight
+      let position = 0
+
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      // Сохраняем PDF
+      const fileName = `Оценка_недвижимости_${new Date().getTime()}.pdf`
+      const pdfBlob = pdf.output('blob')
+      
+      return { pdfBlob, fileName }
+    } catch (error) {
+      console.error('Ошибка при генерации PDF:', error)
+      throw error
+    } finally {
+      setIsGeneratingPDF(false)
+    }
+  }
+  
+  const handleShare = async () => {
+    try {
+      setIsGeneratingPDF(true)
+      const { pdfBlob, fileName } = await generatePDF()
+      
+      // Создаем File объект для отправки
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' })
+
+      // Подготавливаем текст для шаринга
+      const shareText = `🏠 Оценка недвижимости\n\n${result.address}\n\n💰 Средняя цена: ${result.price} ₽\n📊 За м²: ${result.priceMeter} ₽\n📉 Мин: ${result.priceMin} ₽\n📈 Макс: ${result.priceMax} ₽\n\n📅 Изменение за год: ${result.annualPriceChangePercent > 0 ? '+' : ''}${result.annualPriceChangePercent.toFixed(2)}%\n📅 Изменение за 3 месяца: ${result.threeMonthPriceChangePercent > 0 ? '+' : ''}${result.threeMonthPriceChangePercent.toFixed(2)}%\n\n📱 MurmanClick - Оценка недвижимости Мурманска`
+
+      // Приоритет 1: Пробуем использовать Web Share API с файлом PDF
+      const canShareFile = navigator.share && 
+                          navigator.canShare && 
+                          typeof navigator.canShare === 'function' &&
+                          navigator.canShare({ files: [pdfFile] })
+
+      if (canShareFile) {
+        try {
+          await navigator.share({
+            title: 'Оценка недвижимости - MurmanClick',
+            text: `Отчет об оценке недвижимости: ${result.address}`,
+            files: [pdfFile]
+          })
+          setShareSuccess(true)
+          setTimeout(() => setShareSuccess(false), 3000)
+          return
+        } catch (shareError) {
+          if (shareError.name === 'AbortError') {
+            setIsGeneratingPDF(false)
+            return
+          }
+          console.log('Web Share API с файлом не сработал, пробуем другие варианты:', shareError)
+        }
+      }
+
+      // Приоритет 2: Пробуем использовать Web Share API с текстом + скачиваем PDF
+      if (navigator.share) {
+        try {
+          // Сначала скачиваем PDF
+          const url = URL.createObjectURL(pdfBlob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = fileName
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+          
+          // Затем предлагаем поделиться текстом
+          await navigator.share({
+            title: 'Оценка недвижимости - MurmanClick',
+            text: shareText,
+          })
+          
+          setShareSuccess(true)
+          setTimeout(() => setShareSuccess(false), 3000)
+          return
+        } catch (shareError) {
+          if (shareError.name === 'AbortError') {
+            setShareSuccess(true)
+            setTimeout(() => setShareSuccess(false), 3000)
+            return
+          }
+          console.log('Web Share API с текстом не сработал:', shareError)
+        }
+      }
+
+      // Приоритет 3: Telegram Web App Share
+      if (window.Telegram?.WebApp?.shareUrl) {
+        try {
+          // Скачиваем PDF
+          const url = URL.createObjectURL(pdfBlob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = fileName
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+          
+          // Затем предлагаем поделиться текстом через Telegram
+          window.Telegram.WebApp.shareUrl(window.location.href, shareText)
+          
+          setShareSuccess(true)
+          setTimeout(() => setShareSuccess(false), 3000)
+          return
+        } catch (telegramError) {
+          console.log('Telegram Web App Share не сработал:', telegramError)
+        }
+      }
+
+      // Приоритет 4: Fallback - копируем текст и скачиваем PDF
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareText)
+        }
+        
+        // Скачиваем PDF
+        const url = URL.createObjectURL(pdfBlob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = fileName
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        setShareSuccess(true)
+        setTimeout(() => setShareSuccess(false), 3000)
+      } catch (fallbackErr) {
+        console.error('Ошибка при fallback шаринге:', fallbackErr)
+        // В крайнем случае просто скачиваем PDF
+        const url = URL.createObjectURL(pdfBlob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = fileName
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        setShareSuccess(true)
+        setTimeout(() => setShareSuccess(false), 3000)
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Ошибка при генерации/отправке PDF:', err)
+        setShareSuccess(false)
+      }
+    } finally {
+      setIsGeneratingPDF(false)
+    }
+  }
 
   if (!result) {
     return (
@@ -121,14 +439,23 @@ const Results = ({ data }) => {
         <button 
           className="share-button"
           onClick={handleShare}
-          title="Поделиться отчетом"
+          title="Поделиться отчетом (PDF)"
+          disabled={isGeneratingPDF}
         >
-          {shareSuccess ? (
+          {isGeneratingPDF ? (
+            <>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spinning">
+                <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="8" strokeLinecap="round">
+                </circle>
+              </svg>
+              <span>Генерация PDF...</span>
+            </>
+          ) : shareSuccess ? (
             <>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              <span>Скопировано!</span>
+              <span>Отправлено!</span>
             </>
           ) : (
             <>
@@ -294,7 +621,7 @@ const Results = ({ data }) => {
                 </svg>
               </button>
             </div>
-            <div className="chart-container">
+            <div className="chart-container" ref={chartContainerRef}>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 60 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -440,4 +767,5 @@ const Results = ({ data }) => {
 }
 
 export default Results
+
 
