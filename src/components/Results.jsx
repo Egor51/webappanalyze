@@ -84,11 +84,12 @@ const Results = ({ data }) => {
       header.style.marginBottom = '20px'
       
       const title = document.createElement('h1')
-      title.textContent = 'Оценка недвижимости'
-      title.style.fontSize = '24px'
+      title.innerHTML = `Анализ стоимости объекта недвижимости<br/>${result.address}`
+      title.style.fontSize = '22px'
       title.style.fontWeight = 'bold'
       title.style.color = '#2196F3'
       title.style.margin = '0 0 8px 0'
+      title.style.lineHeight = '1.3'
       header.appendChild(title)
       
       const subtitle = document.createElement('div')
@@ -97,24 +98,6 @@ const Results = ({ data }) => {
       subtitle.style.color = '#666666'
       header.appendChild(subtitle)
       pdfContainer.appendChild(header)
-
-      // Адрес
-      const addressSection = document.createElement('div')
-      addressSection.style.marginBottom = '20px'
-      
-      const addressLabel = document.createElement('div')
-      addressLabel.textContent = 'Адрес:'
-      addressLabel.style.fontSize = '14px'
-      addressLabel.style.fontWeight = 'bold'
-      addressLabel.style.marginBottom = '6px'
-      addressSection.appendChild(addressLabel)
-      
-      const addressText = document.createElement('div')
-      addressText.textContent = result.address
-      addressText.style.fontSize = '12px'
-      addressText.style.color = '#333333'
-      addressSection.appendChild(addressText)
-      pdfContainer.appendChild(addressSection)
 
       // Средняя цена
       const priceSection = document.createElement('div')
@@ -208,6 +191,77 @@ const Results = ({ data }) => {
           console.error('Ошибка при генерации графика:', chartError)
         }
       }
+
+      // Блок с данными компании и призывом к действию
+      const companySection = document.createElement('div')
+      companySection.style.marginTop = '30px'
+      companySection.style.marginBottom = '20px'
+      companySection.style.padding = '20px'
+      companySection.style.backgroundColor = '#f8f9fa'
+      companySection.style.borderRadius = '8px'
+      companySection.style.border = '2px solid #2196F3'
+      
+      // Заголовок блока компании
+      const companyTitle = document.createElement('div')
+      companyTitle.textContent = 'Центр недвижимости МурманКлик'
+      companyTitle.style.fontSize = '18px'
+      companyTitle.style.fontWeight = 'bold'
+      companyTitle.style.color = '#2196F3'
+      companyTitle.style.marginBottom = '15px'
+      companyTitle.style.textAlign = 'center'
+      companySection.appendChild(companyTitle)
+      
+      // Контактная информация
+      const contactInfo = document.createElement('div')
+      contactInfo.style.fontSize = '12px'
+      contactInfo.style.color = '#333333'
+      contactInfo.style.marginBottom = '15px'
+      contactInfo.style.lineHeight = '1.8'
+      contactInfo.innerHTML = `
+        <div style="margin-bottom: 6px;"><strong>📞 Телефон:</strong> +7(8152) 707705</div>
+        <div style="margin-bottom: 6px;"><strong>📍 Адрес:</strong> Мурманск, пр-т Ленина 52, ДЦ Аметист, 4 этаж, офис 405</div>
+      `
+      companySection.appendChild(contactInfo)
+      
+      // Призыв к действию
+      const callToAction = document.createElement('div')
+      callToAction.style.marginTop = '15px'
+      callToAction.style.paddingTop = '15px'
+      callToAction.style.borderTop = '1px solid #dee2e6'
+      
+      const callToActionTitle = document.createElement('div')
+      callToActionTitle.textContent = 'Наши услуги:'
+      callToActionTitle.style.fontSize = '14px'
+      callToActionTitle.style.fontWeight = 'bold'
+      callToActionTitle.style.color = '#2196F3'
+      callToActionTitle.style.marginBottom = '12px'
+      callToAction.appendChild(callToActionTitle)
+      
+      const servicesList = document.createElement('div')
+      servicesList.style.fontSize = '12px'
+      servicesList.style.color = '#333333'
+      servicesList.style.lineHeight = '2'
+      servicesList.innerHTML = `
+        <div style="margin-bottom: 8px;">🏠 <strong>Покупка недвижимости</strong> - Поможем найти идеальный вариант</div>
+        <div style="margin-bottom: 8px;">💰 <strong>Продажа недвижимости</strong> - Максимально выгодная цена</div>
+        <div style="margin-bottom: 8px;">⚡ <strong>Срочный выкуп недвижимости</strong> - Быстрое решение ваших задач</div>
+      `
+      callToAction.appendChild(servicesList)
+      
+      const contactButton = document.createElement('div')
+      contactButton.style.marginTop = '15px'
+      contactButton.style.padding = '10px'
+      contactButton.style.backgroundColor = '#2196F3'
+      contactButton.style.color = '#ffffff'
+      contactButton.style.borderRadius = '6px'
+      contactButton.style.textAlign = 'center'
+      contactButton.style.fontSize = '13px'
+      contactButton.style.fontWeight = 'bold'
+      contactButton.textContent = 'Свяжитесь с нами для консультации!'
+      callToAction.appendChild(contactButton)
+      
+      companySection.appendChild(callToAction)
+      pdfContainer.appendChild(companySection)
 
       // Футер
       const footer = document.createElement('div')
