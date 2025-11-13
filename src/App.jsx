@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { ThemeProvider } from './context/ThemeContext'
 import Header from './components/Header'
 import SearchForm from './components/SearchForm'
+import SearchHistory from './components/SearchHistory'
 import Results from './components/Results'
 import Loader from './components/Loader'
 import Instructions from './components/Instructions'
+import { saveSearchToHistory } from './utils/searchHistory'
 import './App.css'
 
 function App() {
@@ -13,6 +15,7 @@ function App() {
   const [error, setError] = useState(null)
   const [initialLoading, setInitialLoading] = useState(true)
   const [telegramUser, setTelegramUser] = useState(null)
+  const [historyRefresh, setHistoryRefresh] = useState(0)
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -78,9 +81,12 @@ function App() {
     setError(null)
     setData(null)
 
+    // Сохраняем исходный адрес для истории
+    const originalAddress = address.trim()
+
     try {
       // Формируем адрес: если не указан город, добавляем "Мурманск"
-      let fullAddress = address.trim()
+      let fullAddress = originalAddress
       if (!fullAddress.toLowerCase().includes('мурманск')) {
         fullAddress = `Мурманск ${fullAddress}`
       }
@@ -229,6 +235,11 @@ function App() {
       
       setData(data)
       
+      // Сохраняем поиск в историю (сохраняем исходный адрес)
+      saveSearchToHistory(originalAddress, countRoom)
+      // Обновляем историю в UI
+      setHistoryRefresh(prev => prev + 1)
+      
       // Отправка данных на webhook после успешного анализа
       try {
         const webhookData = {
@@ -281,6 +292,17 @@ function App() {
     }
   }
 
+  const handleSelectFromHistory = (address, countRoom) => {
+    // Устанавливаем значения в форму и выполняем поиск
+    handleSearch(address, countRoom)
+  }
+
+  const handleNewSearch = () => {
+    // Очищаем данные для нового поиска
+    setData(null)
+    setError(null)
+  }
+
   // Показываем начальный лоадер
   if (initialLoading) {
     return (
@@ -298,7 +320,15 @@ function App() {
         <Header />
         <main className="main-content">
           <SearchForm onSearch={handleSearch} />
-          {!data && !loading && !error && <Instructions />}
+          {!data && !loading && !error && (
+            <>
+              <SearchHistory 
+                onSelectSearch={handleSelectFromHistory}
+                refreshTrigger={historyRefresh}
+              />
+              <Instructions />
+            </>
+          )}
           {loading && <Loader />}
           {error && (
             <div className="error-message">
@@ -310,7 +340,7 @@ function App() {
               <p>{error}</p>
             </div>
           )}
-          {data && !loading && <Results data={data} />}
+          {data && !loading && <Results data={data} onNewSearch={handleNewSearch} />}
         </main>
       </div>
     </ThemeProvider>

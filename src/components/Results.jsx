@@ -19,7 +19,7 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' })
 }
 
-const Results = ({ data }) => {
+const Results = ({ data, onNewSearch }) => {
   const [shareSuccess, setShareSuccess] = useState(false)
   const [chartExpanded, setChartExpanded] = useState(false)
   const [showMinTooltip, setShowMinTooltip] = useState(false)
@@ -490,7 +490,21 @@ const Results = ({ data }) => {
     <div className="results">
       <div className="results-header">
         <h2>Результаты оценки</h2>
-        <button 
+        <div className="results-header-actions">
+          {onNewSearch && (
+            <button
+              className="new-search-button"
+              onClick={onNewSearch}
+              title="Новый поиск"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <span>Новый поиск</span>
+            </button>
+          )}
+          <button 
           className="share-button"
           onClick={handleShare}
           title="Поделиться отчетом (PDF)"
@@ -524,6 +538,7 @@ const Results = ({ data }) => {
             </>
           )}
         </button>
+        </div>
       </div>
 
       <div className="result-card address-card">
