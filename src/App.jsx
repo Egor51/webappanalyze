@@ -101,7 +101,7 @@ function App() {
       
       let response
       try {
-        // Пробуем сделать запрос с разными настройками для Chrome
+        // Пробуем сделать запрос
         response = await fetch(apiUrl, {
           method: 'GET',
           mode: 'cors',
@@ -123,33 +123,66 @@ function App() {
         // Проверяем, доступен ли сервер через другой метод
         // Chrome может блокировать из-за SSL/CORS
         const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)
+        const errorMessage = fetchError.message || ''
+        const errorName = fetchError.name || ''
+        const errorStack = fetchError.stack || ''
+        const fullErrorText = `${errorMessage} ${errorStack}`.toUpperCase()
         
         if (isChrome) {
           console.warn('Chrome detected - возможна проблема с CORS или SSL сертификатом')
         }
         
-        // Chrome может выдавать разные типы ошибок
-        if (fetchError.message && (
-          fetchError.message.includes('CERT') || 
-          fetchError.message.includes('certificate') ||
-          fetchError.message.includes('ERR_CERT') ||
-          fetchError.message.includes('ERR_SSL')
-        )) {
-          throw new Error('Проблема с сертификатом безопасности сервера. Пожалуйста, попробуйте позже.')
+        // Специальная обработка для отозванного сертификата (проверяем в сообщении и стеке)
+        if (fullErrorText.includes('ERR_CERT_REVOKED') || 
+            fullErrorText.includes('CERT_REVOKED') ||
+            errorMessage.includes('ERR_CERT_REVOKED') ||
+            errorStack.includes('ERR_CERT_REVOKED')) {
+          // Chrome более строго проверяет сертификаты, Safari может работать
+          if (isChrome) {
+            throw new Error('Chrome блокирует подключение из-за проверки сертификата. Пожалуйста, используйте Safari или другой браузер. Проблема связана со строгой проверкой сертификатов в Chrome.')
+          } else {
+            throw new Error('Сертификат безопасности сервера был отозван. Это проблема на стороне сервера murmanclick.ru. Пожалуйста, обратитесь к администратору сервера для исправления сертификата.')
+          }
+        }
+        
+        // Проверка на SSL/CERT ошибки (более расширенная)
+        const isSSLError = errorMessage.includes('CERT') || 
+                          errorMessage.includes('certificate') ||
+                          errorMessage.includes('ERR_CERT') ||
+                          errorMessage.includes('ERR_SSL') ||
+                          errorMessage.includes('SSL') ||
+                          errorMessage.includes('TLS') ||
+                          errorMessage.includes('certificate has expired') ||
+                          errorMessage.includes('certificate is invalid') ||
+                          errorMessage.includes('certificate is not trusted') ||
+                          errorMessage.includes('ERR_CERT_AUTHORITY_INVALID') ||
+                          errorMessage.includes('ERR_CERT_COMMON_NAME_INVALID') ||
+                          errorStack.includes('ERR_CERT') ||
+                          errorStack.includes('ERR_SSL')
+        
+        if (isSSLError) {
+          // Chrome более строго проверяет сертификаты через OCSP
+          if (isChrome) {
+            throw new Error('Chrome блокирует подключение из-за проверки сертификата. Пожалуйста, используйте Safari или другой браузер. Chrome использует более строгую проверку сертификатов через OCSP.')
+          } else {
+            throw new Error('Проблема с сертификатом безопасности сервера. Пожалуйста, попробуйте позже или обратитесь к администратору.')
+          }
         }
         
         // Обработка различных типов сетевых ошибок
-        if (
-          fetchError.name === 'TypeError' ||
-          fetchError.name === 'NetworkError' ||
-          fetchError.message.includes('Failed to fetch') ||
-          fetchError.message.includes('NetworkError') ||
-          fetchError.message.includes('Network request failed') ||
-          fetchError.message.includes('ERR_INTERNET_DISCONNECTED') ||
-          fetchError.message.includes('ERR_NETWORK_CHANGED') ||
-          fetchError.message.includes('ERR_CONNECTION_REFUSED') ||
-          fetchError.message.includes('ERR_CONNECTION_RESET')
-        ) {
+        const isNetworkError = errorName === 'TypeError' ||
+                              errorName === 'NetworkError' ||
+                              errorMessage.includes('Failed to fetch') ||
+                              errorMessage.includes('NetworkError') ||
+                              errorMessage.includes('Network request failed') ||
+                              errorMessage.includes('ERR_INTERNET_DISCONNECTED') ||
+                              errorMessage.includes('ERR_NETWORK_CHANGED') ||
+                              errorMessage.includes('ERR_CONNECTION_REFUSED') ||
+                              errorMessage.includes('ERR_CONNECTION_RESET') ||
+                              errorMessage.includes('ERR_CONNECTION_TIMED_OUT') ||
+                              errorMessage.includes('ERR_NAME_NOT_RESOLVED')
+        
+        if (isNetworkError) {
           // В Chrome "Failed to fetch" может означать разные проблемы
           // Проверяем, есть ли реальное подключение к интернету
           if (navigator.onLine === false) {
@@ -157,10 +190,16 @@ function App() {
           }
           
           // Если есть интернет, но запрос не проходит, это может быть CORS или SSL
-          throw new Error('Не удалось подключиться к серверу. Возможна проблема с сертификатом безопасности или настройками CORS.')
+          // В Chrome "Failed to fetch" часто означает SSL или CORS проблему
+          if (isChrome && errorMessage.includes('Failed to fetch')) {
+            throw new Error('Chrome блокирует подключение. Возможна проблема с проверкой сертификата. Пожалуйста, используйте Safari или другой браузер. Chrome использует более строгую проверку сертификатов.')
+          }
+          
+          throw new Error('Не удалось подключиться к серверу. Проверьте подключение к интернету и попробуйте позже.')
         }
         
-        throw fetchError
+        // Если это неизвестная ошибка, показываем общее сообщение
+        throw new Error('Произошла ошибка при загрузке данных. Пожалуйста, попробуйте позже.')
       }
       
       if (!response.ok) {
@@ -219,9 +258,17 @@ function App() {
       
       // Более понятные сообщения об ошибках
       let errorMessage = 'Произошла ошибка при загрузке данных'
+      const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)
       
-      if (err.message.includes('сертификат')) {
-        errorMessage = 'Проблема с сертификатом безопасности сервера. Пожалуйста, попробуйте позже или обратитесь к администратору.'
+      if (err.message.includes('сертификат') || err.message.includes('Chrome блокирует')) {
+        // Если сообщение уже содержит информацию о Chrome, используем его
+        if (err.message.includes('Chrome')) {
+          errorMessage = err.message
+        } else if (isChrome) {
+          errorMessage = 'Chrome блокирует подключение из-за проверки сертификата. Пожалуйста, используйте Safari или другой браузер.'
+        } else {
+          errorMessage = 'Проблема с сертификатом безопасности сервера. Пожалуйста, попробуйте позже или обратитесь к администратору.'
+        }
       } else if (err.message.includes('подключиться')) {
         errorMessage = 'Не удалось подключиться к серверу. Проверьте подключение к интернету.'
       } else if (err.message) {
