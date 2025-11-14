@@ -16,6 +16,7 @@ function App() {
   const [initialLoading, setInitialLoading] = useState(true)
   const [telegramUser, setTelegramUser] = useState(null)
   const [historyRefresh, setHistoryRefresh] = useState(0)
+  const [searchType, setSearchType] = useState('address')
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -76,7 +77,7 @@ function App() {
     initApp()
   }, [])
 
-  const handleSearch = async (address, countRoom) => {
+  const handleSearch = async (address, countRoom, searchType = 'address') => {
     setLoading(true)
     setError(null)
     setData(null)
@@ -85,22 +86,41 @@ function App() {
     const originalAddress = address.trim()
 
     try {
-      // Формируем адрес: если не указан город, добавляем "Мурманск"
-      let fullAddress = originalAddress
-      if (!fullAddress.toLowerCase().includes('мурманск')) {
-        fullAddress = `Мурманск ${fullAddress}`
-      }
+      const baseUrl = 'https://murmanclick.ru'
+      let apiUrl = ''
       
-      // Если в адресе нет "д" или "дом", добавляем "д"
-      if (!fullAddress.match(/\s(д|дом)\s/i)) {
-        // Ищем номер дома в конце адреса
-        const houseMatch = fullAddress.match(/\s(\d+)$/)
-        if (houseMatch) {
-          fullAddress = fullAddress.replace(/\s(\d+)$/, ' д $1')
+      // Проверяем, нужно ли добавлять параметр countRoom
+      const shouldIncludeCountRoom = countRoom !== 'Весь район' && countRoom !== 'Весь город'
+      
+      if (searchType === 'city') {
+        // Запрос по городу
+        const cityParam = `city=${encodeURIComponent(originalAddress)}`
+        const countRoomParam = shouldIncludeCountRoom ? `&countRoom=${encodeURIComponent(countRoom)}` : ''
+        apiUrl = `${baseUrl}/ads/analytic/city?${cityParam}${countRoomParam}`
+      } else if (searchType === 'district') {
+        // Запрос по району
+        const districtParam = `district=${encodeURIComponent(originalAddress)}`
+        const countRoomParam = shouldIncludeCountRoom ? `&countRoom=${encodeURIComponent(countRoom)}` : ''
+        apiUrl = `${baseUrl}/ads/analytic/district?${districtParam}${countRoomParam}`
+      } else {
+        // Запрос по адресу (старый формат)
+        // Формируем адрес: если не указан город, добавляем "Мурманск"
+        let fullAddress = originalAddress
+        if (!fullAddress.toLowerCase().includes('мурманск')) {
+          fullAddress = `Мурманск ${fullAddress}`
         }
+        
+        // Если в адресе нет "д" или "дом", добавляем "д"
+        if (!fullAddress.match(/\s(д|дом)\s/i)) {
+          // Ищем номер дома в конце адреса
+          const houseMatch = fullAddress.match(/\s(\d+)$/)
+          if (houseMatch) {
+            fullAddress = fullAddress.replace(/\s(\d+)$/, ' д $1')
+          }
+        }
+        
+        apiUrl = `${baseUrl}/ads/analytic/v1.1?street=${encodeURIComponent(fullAddress)}&countRoom=${encodeURIComponent(countRoom)}`
       }
-      
-      const apiUrl = `https://murmanclick.ru/ads/analytic/v1.1?street=${encodeURIComponent(fullAddress)}&countRoom=${encodeURIComponent(countRoom)}`
       
       // Логирование для отладки
       console.log('Запрос к API:', apiUrl)
@@ -319,14 +339,18 @@ function App() {
       <div className="app">
         <Header />
         <main className="main-content">
-          <SearchForm onSearch={handleSearch} />
+          <SearchForm 
+            onSearch={handleSearch} 
+            searchType={searchType}
+            onSearchTypeChange={setSearchType}
+          />
           {!data && !loading && !error && (
             <>
               <SearchHistory 
                 onSelectSearch={handleSelectFromHistory}
                 refreshTrigger={historyRefresh}
               />
-              <Instructions />
+              <Instructions searchType={searchType} />
             </>
           )}
           {loading && <Loader />}

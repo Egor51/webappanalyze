@@ -1,12 +1,75 @@
+.search-form-wrapper {
+  margin-bottom: 32px;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.search-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: var(--card-bg);
+  padding: 8px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+
+.search-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+}
+
+.search-tab svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  transition: all 0.3s ease;
+}
+
+.search-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  transform: translateY(-1px);
+}
+
+.search-tab.active {
+  background: var(--accent-gradient);
+  color: white;
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.search-tab.active svg {
+  color: white;
+}
+
+.search-tab:active {
+  transform: scale(0.98) translateY(-1px);
+}
+
 .search-form {
   background: var(--card-bg);
   border-radius: 24px;
   padding: 32px;
   box-shadow: var(--shadow-lg);
-  margin-bottom: 32px;
   border: 1px solid var(--border);
   transition: all 0.3s ease;
-  animation: fadeInUp 0.4s ease-out;
 }
 
 .search-form:hover {
@@ -70,6 +133,110 @@
 
 .form-input::placeholder {
   color: var(--text-secondary);
+}
+
+.input-with-suggestions {
+  position: relative;
+  width: 100%;
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  animation: fadeInDown 0.2s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: var(--bg-secondary);
+  color: var(--accent);
+}
+
+.suggestion-item:active {
+  background: var(--bg-secondary);
+  transform: scale(0.98);
+}
+
+.suggestion-item svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.suggestion-item:hover svg {
+  color: var(--accent);
+}
+
+.suggestion-item.loading {
+  justify-content: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  cursor: default;
+}
+
+.suggestion-item.loading:hover {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.suggestions-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.suggestions-list::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
+.suggestions-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.suggestions-list::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }
 
 .room-options {
@@ -139,6 +306,73 @@
   transform: scale(0.98);
 }
 
+.district-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.district-option {
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+}
+
+.district-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--accent-gradient);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.district-option:hover {
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.district-option.active {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.district-option.active::before {
+  opacity: 1;
+}
+
+.district-option.active {
+  color: white !important;
+}
+
+.district-option.active,
+.district-option.active * {
+  color: white !important;
+  position: relative;
+  z-index: 1;
+}
+
+.district-option:active {
+  transform: scale(0.98);
+}
+
 .submit-button {
   width: 100%;
   padding: 18px 24px;
@@ -194,8 +428,42 @@
 }
 
 @media (max-width: 480px) {
+  .search-tabs {
+    padding: 6px;
+    gap: 6px;
+  }
+  
+  .search-tab {
+    padding: 10px 8px;
+    font-size: 12px;
+    gap: 6px;
+  }
+  
+  .search-tab svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .search-tab span {
+    display: none;
+  }
+  
+  .search-tab.active span {
+    display: inline;
+  }
+  
   .search-form {
     padding: 20px;
+  }
+  
+  .district-options {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .district-option {
+    padding: 12px 16px;
+    font-size: 14px;
   }
   
   .room-options {

@@ -63,6 +63,23 @@ const Results = ({ data, onNewSearch }) => {
       fullDate: item.date,
     }))
   }, [result])
+
+  // Вычисляем диапазон для оси Y (±20% от min/max значений)
+  const yAxisDomain = useMemo(() => {
+    if (chartData.length === 0) return [0, 'auto']
+    
+    const prices = chartData.map(item => item.price).filter(price => typeof price === 'number')
+    if (prices.length === 0) return [0, 'auto']
+    
+    const minPrice = Math.min(...prices)
+    const maxPrice = Math.max(...prices)
+    
+    // Вычитаем 20% от минимального значения и добавляем 20% к максимальному
+    const domainMin = Math.max(0, minPrice * 0.8) // -20% от минимального значения, но не ниже нуля
+    const domainMax = maxPrice * 1.2 // +20% от максимального значения
+    
+    return [domainMin, domainMax]
+  }, [chartData])
   
   const generatePDF = async () => {
     setIsGeneratingPDF(true)
@@ -708,6 +725,7 @@ const Results = ({ data, onNewSearch }) => {
                     tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
                     tickFormatter={(value) => `${(value / 1000000).toFixed(1)}М`}
                     width={50}
+                    domain={yAxisDomain}
                   />
                   <Tooltip
                     contentStyle={{
@@ -803,6 +821,7 @@ const Results = ({ data, onNewSearch }) => {
                         tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
                         tickFormatter={(value) => `${(value / 1000000).toFixed(1)}М ₽`}
                         width={60}
+                        domain={yAxisDomain}
                       />
                       <Tooltip
                         contentStyle={{

@@ -1,6 +1,75 @@
 import './Instructions.css'
 
-const Instructions = () => {
+const Instructions = ({ searchType = 'address' }) => {
+  const getInstructions = () => {
+    if (searchType === 'district') {
+      return {
+        title: 'Как пользоваться: поиск по району',
+        steps: [
+          {
+            number: 1,
+            title: 'Выберите район',
+            description: 'Выберите район из списка: Октябрьский, Первомайский или Ленинский'
+          },
+          {
+            number: 2,
+            title: 'Выберите количество комнат',
+            description: 'Укажите тип квартиры: Студия, 1, 2, 3, 4+ комнат или выберите "Весь район" для анализа всех квартир в районе'
+          },
+          {
+            number: 3,
+            title: 'Получите статистику',
+            description: 'Нажмите кнопку "Узнать цену" и получите детальный анализ стоимости недвижимости в выбранном районе с графиком изменения цены'
+          }
+        ]
+      }
+    } else if (searchType === 'city') {
+      return {
+        title: 'Как пользоваться: поиск по городу',
+        steps: [
+          {
+            number: 1,
+            title: 'Введите название города',
+            description: 'Введите название города в поле ввода. Используйте подсказки для быстрого выбора'
+          },
+          {
+            number: 2,
+            title: 'Выберите количество комнат',
+            description: 'Укажите тип квартиры: Студия, 1, 2, 3, 4+ комнат или выберите "Весь город" для анализа всех квартир в городе'
+          },
+          {
+            number: 3,
+            title: 'Получите статистику',
+            description: 'Нажмите кнопку "Узнать цену" и получите детальный анализ стоимости недвижимости в выбранном городе с графиком изменения цены'
+          }
+        ]
+      }
+    } else {
+      return {
+        title: 'Как пользоваться сервисом',
+        steps: [
+          {
+            number: 1,
+            title: 'Введите адрес недвижимости',
+            description: 'Укажите адрес в формате: город, улица, дом. Например: <strong>Мурманск Александрова 30/2</strong>'
+          },
+          {
+            number: 2,
+            title: 'Выберите количество комнат',
+            description: 'Укажите тип квартиры: Студия, 1, 2, 3 или 4+ комнат'
+          },
+          {
+            number: 3,
+            title: 'Получите оценку',
+            description: 'Нажмите кнопку "Узнать цену" и получите детальный анализ стоимости недвижимости с графиком изменения цены'
+          }
+        ]
+      }
+    }
+  }
+
+  const instructions = getInstructions()
+
   return (
     <div className="instructions">
       <div className="instructions-header">
@@ -11,36 +80,18 @@ const Instructions = () => {
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
         </div>
-        <h3 className="instructions-title">Как пользоваться сервисом</h3>
+        <h3 className="instructions-title">{instructions.title}</h3>
       </div>
       <div className="instructions-content">
-        <div className="instruction-step">
-          <div className="step-number">1</div>
-          <div className="step-content">
-            <h4 className="step-title">Введите адрес недвижимости</h4>
-            <p className="step-description">
-              Укажите адрес в формате: город, улица, дом. Например: <strong>Мурманск Александрова 30/2</strong>
-            </p>
+        {instructions.steps.map((step) => (
+          <div key={step.number} className="instruction-step">
+            <div className="step-number">{step.number}</div>
+            <div className="step-content">
+              <h4 className="step-title">{step.title}</h4>
+              <p className="step-description" dangerouslySetInnerHTML={{ __html: step.description }} />
+            </div>
           </div>
-        </div>
-        <div className="instruction-step">
-          <div className="step-number">2</div>
-          <div className="step-content">
-            <h4 className="step-title">Выберите количество комнат</h4>
-            <p className="step-description">
-              Укажите тип квартиры: Студия, 1, 2, 3 или 4+ комнат
-            </p>
-          </div>
-        </div>
-        <div className="instruction-step">
-          <div className="step-number">3</div>
-          <div className="step-content">
-            <h4 className="step-title">Получите оценку</h4>
-            <p className="step-description">
-              Нажмите кнопку "Узнать цену" и получите детальный анализ стоимости недвижимости с графиком изменения цены
-            </p>
-          </div>
-        </div>
+        ))}
       </div>
       <div className="instructions-footer">
         <div className="info-badge">
