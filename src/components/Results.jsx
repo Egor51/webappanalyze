@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useRef } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import PriceForecast from './PriceForecast'
 import './Results.css'
 
 const formatPrice = (price) => {
@@ -748,6 +749,12 @@ const Results = ({ data, onNewSearch }) => {
                   />
                 </LineChart>
               </ResponsiveContainer>
+              {result?.analytics && result.analytics.length >= 3 && result?.address && (
+            <PriceForecast 
+              analytics={result.analytics} 
+              address={result.address}
+            />
+          )}
             </div>
             <div className="chart-disclaimer">
               <div className="disclaimer-header">
@@ -787,6 +794,14 @@ const Results = ({ data, onNewSearch }) => {
               </button>
             </div>
           </div>
+
+          {/* Компонент прогноза цены через ML */}
+          {/* {result?.analytics && result.analytics.length >= 3 && result?.address && (
+            <PriceForecast 
+              analytics={result.analytics} 
+              address={result.address}
+            />
+          )} */}
 
           {chartExpanded && (
             <div className="chart-modal" onClick={() => setChartExpanded(false)}>
