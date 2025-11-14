@@ -13,6 +13,7 @@ function App() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [noData, setNoData] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
   const [telegramUser, setTelegramUser] = useState(null)
   const [historyRefresh, setHistoryRefresh] = useState(0)
@@ -77,10 +78,11 @@ function App() {
     initApp()
   }, [])
 
-  const handleSearch = async (address, countRoom, searchType = 'address') => {
+  const handleSearch = async (address, countRoom, searchType = 'address', propertyType = 'all') => {
     setLoading(true)
     setError(null)
     setData(null)
+    setNoData(false)
 
     // Сохраняем исходный адрес для истории
     const originalAddress = address.trim()
@@ -90,18 +92,39 @@ function App() {
       let apiUrl = ''
       
       // Проверяем, нужно ли добавлять параметр countRoom
-      const shouldIncludeCountRoom = countRoom !== 'Весь район' && countRoom !== 'Весь город'
+      const shouldIncludeCountRoom = countRoom !== 'Весь' && countRoom !== 'Весь район' && countRoom !== 'Весь город'
+      
+      // Преобразуем propertyType в houseMaterial
+      const houseMaterialValue = propertyType === 'new' ? 'Новостройка' : propertyType === 'secondary' ? 'Вторичка' : null
       
       if (searchType === 'city') {
-        // Запрос по городу
-        const cityParam = `city=${encodeURIComponent(originalAddress)}`
-        const countRoomParam = shouldIncludeCountRoom ? `&countRoom=${encodeURIComponent(countRoom)}` : ''
-        apiUrl = `${baseUrl}/ads/analytic/city?${cityParam}${countRoomParam}`
+        // Запрос по городу: https://murmanclick.ru/ads/analytic/city?city=Мурманск&countRoom=2&houseMaterial=Новостройка
+        const params = new URLSearchParams()
+        params.append('city', originalAddress)
+        
+        if (shouldIncludeCountRoom) {
+          params.append('countRoom', countRoom)
+        }
+        
+        if (houseMaterialValue) {
+          params.append('houseMaterial', houseMaterialValue)
+        }
+        
+        apiUrl = `${baseUrl}/ads/analytic/city?${params.toString()}`
       } else if (searchType === 'district') {
-        // Запрос по району
-        const districtParam = `district=${encodeURIComponent(originalAddress)}`
-        const countRoomParam = shouldIncludeCountRoom ? `&countRoom=${encodeURIComponent(countRoom)}` : ''
-        apiUrl = `${baseUrl}/ads/analytic/district?${districtParam}${countRoomParam}`
+        // Запрос по району: https://murmanclick.ru/ads/analytic/district?district=Ленинский&countRoom=2&houseMaterial=Новостройка
+        const params = new URLSearchParams()
+        params.append('district', originalAddress)
+        
+        if (shouldIncludeCountRoom) {
+          params.append('countRoom', countRoom)
+        }
+        
+        if (houseMaterialValue) {
+          params.append('houseMaterial', houseMaterialValue)
+        }
+        
+        apiUrl = `${baseUrl}/ads/analytic/district?${params.toString()}`
       } else {
         // Запрос по адресу (старый формат)
         // Формируем адрес: если не указан город, добавляем "Мурманск"
@@ -228,6 +251,14 @@ function App() {
         throw new Error('Произошла ошибка при загрузке данных. Пожалуйста, попробуйте позже.')
       }
       
+      // Обработка статуса 204 - данные не найдены
+      if (response.status === 204) {
+        setNoData(true)
+        setData(null)
+        setLoading(false)
+        return
+      }
+      
       if (!response.ok) {
         const errorText = await response.text().catch(() => '')
         console.error('Response error:', response.status, errorText)
@@ -344,7 +375,20 @@ function App() {
             searchType={searchType}
             onSearchTypeChange={setSearchType}
           />
-          {!data && !loading && !error && (
+          {noData && !loading && (
+            <div className="no-data-message">
+              <div className="no-data-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+              </div>
+              <h3>Данные не найдены</h3>
+              <p>По вашему запросу не найдено данных о недвижимости. Попробуйте изменить параметры поиска.</p>
+            </div>
+          )}
+          {!data && !loading && !error && !noData && (
             <>
               <SearchHistory 
                 onSelectSearch={handleSelectFromHistory}

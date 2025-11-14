@@ -18,13 +18,13 @@ const DISTRICT_OPTIONS = [
 const getRoomOptions = (searchType) => {
   if (searchType === 'district') {
     return [
-      { value: 'Весь район', label: 'Весь район' },
+      { value: 'Весь', label: 'Весь' },
       ...BASE_ROOM_OPTIONS
     ]
   }
   if (searchType === 'city') {
     return [
-      { value: 'Весь город', label: 'Весь город' },
+      { value: 'Весь', label: 'Весь' },
       ...BASE_ROOM_OPTIONS
     ]
   }
@@ -85,6 +85,7 @@ const SearchForm = ({ onSearch, searchType: externalSearchType, onSearchTypeChan
   const setSearchType = onSearchTypeChange || setInternalSearchType
   const [address, setAddress] = useState('')
   const [countRoom, setCountRoom] = useState('')
+  const [propertyType, setPropertyType] = useState('all') // 'all', 'new', 'secondary'
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
@@ -215,7 +216,7 @@ const SearchForm = ({ onSearch, searchType: externalSearchType, onSearchTypeChan
       if (window.ym) {
         window.ym(105200711, 'reachGoal', 'vanalyze')
       }
-      onSearch(address.trim(), countRoom, searchType)
+      onSearch(address.trim(), countRoom, searchType, propertyType)
     }
   }
 
@@ -234,6 +235,7 @@ const SearchForm = ({ onSearch, searchType: externalSearchType, onSearchTypeChan
               setSearchType(type.value)
               setAddress('') // Очищаем поле при смене типа поиска
               setCountRoom('') // Очищаем выбор комнат при смене типа поиска
+              setPropertyType('all') // Сбрасываем тип недвижимости
               setSuggestions([]) // Очищаем suggestions
               setShowSuggestions(false) // Скрываем список suggestions
               setIsSuggestionSelected(false) // Сбрасываем флаг выбора
@@ -336,6 +338,46 @@ const SearchForm = ({ onSearch, searchType: externalSearchType, onSearchTypeChan
             </div>
           )}
         </div>
+
+      {(searchType === 'district' || searchType === 'city') && (
+        <div className="form-group property-type-group">
+          <label className="form-label property-type-label">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 21h18"></path>
+              <path d="M5 21V7l8-4v18"></path>
+              <path d="M19 21V11l-6-4"></path>
+              <line x1="9" y1="9" x2="9" y2="9"></line>
+              <line x1="9" y1="12" x2="9" y2="12"></line>
+              <line x1="9" y1="15" x2="9" y2="15"></line>
+              <line x1="9" y1="18" x2="9" y2="18"></line>
+            </svg>
+            Тип недвижимости
+          </label>
+          <div className="property-type-toggle">
+            <button
+              type="button"
+              className={`property-type-option ${propertyType === 'all' ? 'active' : ''}`}
+              onClick={() => setPropertyType('all')}
+            >
+              <span>Все</span>
+            </button>
+            <button
+              type="button"
+              className={`property-type-option ${propertyType === 'new' ? 'active' : ''}`}
+              onClick={() => setPropertyType('new')}
+            >
+              <span>Новостройка</span>
+            </button>
+            <button
+              type="button"
+              className={`property-type-option ${propertyType === 'secondary' ? 'active' : ''}`}
+              onClick={() => setPropertyType('secondary')}
+            >
+              <span>Вторичка</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="form-group">
         <label className="form-label">

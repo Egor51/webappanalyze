@@ -38,6 +38,42 @@
   font-weight: 500;
 }
 
+.no-data-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 32px 24px;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  margin-top: 24px;
+  box-shadow: var(--shadow-lg);
+  animation: slideIn 0.3s ease-out;
+}
+
+.no-data-icon {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.no-data-message h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.no-data-message p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 500px;
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;

@@ -373,6 +373,55 @@
   transform: scale(0.98);
 }
 
+.property-type-group {
+  margin-bottom: 20px;
+}
+
+.property-type-label {
+  margin-bottom: 10px;
+}
+
+.property-type-toggle {
+  display: flex;
+  gap: 8px;
+  background: var(--bg-secondary);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.property-type-option {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+}
+
+.property-type-option:hover {
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+
+.property-type-option.active {
+  background: var(--accent-gradient);
+  color: white;
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.property-type-option:active {
+  transform: scale(0.98) translateY(-1px);
+}
+
 .submit-button {
   width: 100%;
   padding: 18px 24px;
@@ -473,6 +522,16 @@
   .room-option {
     padding: 10px 12px;
     font-size: 13px;
+  }
+  
+  .property-type-toggle {
+    gap: 6px;
+    padding: 3px;
+  }
+  
+  .property-type-option {
+    padding: 8px 10px;
+    font-size: 12px;
   }
 }
 
