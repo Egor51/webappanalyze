@@ -897,6 +897,110 @@
   font-size: 14px;
 }
 
+/* Стили для запроса прогноза */
+.forecast-request-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.forecast-request-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.6;
+  width: 100%;
+}
+
+.get-forecast-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--accent-gradient);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.get-forecast-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+}
+
+.get-forecast-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.get-forecast-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.get-forecast-button svg {
+  flex-shrink: 0;
+}
+
+.forecast-loading-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.forecast-loading-section .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.forecast-loading-section p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.forecast-error-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.forecast-error-section svg {
+  flex-shrink: 0;
+  color: #ef4444;
+}
+
+.forecast-error-section p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.forecast-chart-card {
+  margin-top: 24px;
+}
+
 @media (max-width: 480px) {
   .forecast-stats {
     grid-template-columns: repeat(2, 1fr);
@@ -912,6 +1016,19 @@
     flex-direction: column;
     gap: 12px;
     align-items: flex-start;
+  }
+  
+  .forecast-request-section {
+    padding: 20px 16px;
+  }
+  
+  .forecast-request-text {
+    font-size: 13px;
+  }
+  
+  .get-forecast-button {
+    padding: 10px 20px;
+    font-size: 14px;
   }
 }
 

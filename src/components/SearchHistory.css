@@ -102,9 +102,16 @@
 .history-items {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   max-height: 400px;
   overflow-y: auto;
+  /* Скрываем скроллбар */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE и Edge */
+}
+
+.history-items::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .history-item {
@@ -120,10 +127,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
+  padding: 8px 10px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
@@ -145,13 +152,15 @@
 .history-item-main {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex: 1;
 }
 
 .history-item-main svg {
   flex-shrink: 0;
   color: var(--accent);
+  width: 14px;
+  height: 14px;
 }
 
 .history-item:hover .history-item-main svg {
@@ -164,10 +173,10 @@
 }
 
 .history-item-address {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -176,17 +185,17 @@
 .history-item-details {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 11px;
 }
 
 .history-item-rooms {
-  padding: 2px 8px;
+  padding: 2px 6px;
   background: var(--accent);
   color: white;
-  border-radius: 6px;
+  border-radius: 4px;
   font-weight: 600;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .history-item:hover .history-item-rooms {
@@ -195,24 +204,29 @@
 
 .history-item-time {
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .history-item-remove {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
   opacity: 0.6;
+}
+
+.history-item-remove svg {
+  width: 12px;
+  height: 12px;
 }
 
 .history-item-remove:hover {
@@ -222,22 +236,4 @@
   transform: scale(1.1);
 }
 
-/* Скроллбар для истории */
-.history-items::-webkit-scrollbar {
-  width: 6px;
-}
-
-.history-items::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-  border-radius: 3px;
-}
-
-.history-items::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-
-.history-items::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-}
 

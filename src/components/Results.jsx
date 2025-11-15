@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import PriceForecast from './PriceForecast'
+import { getMLForecast, formatForecastForChart } from '../utils/forecastML'
 import './Results.css'
 
 const formatPrice = (price) => {
@@ -27,6 +28,14 @@ const Results = ({ data, onNewSearch }) => {
   const [showMaxTooltip, setShowMaxTooltip] = useState(false)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const chartContainerRef = useRef(null)
+  const resultsHeaderRef = useRef(null)
+  const forecastChartRef = useRef(null)
+  
+  // Состояния для прогноза
+  const [forecastData, setForecastData] = useState(null)
+  const [forecastLoading, setForecastLoading] = useState(false)
+  const [forecastError, setForecastError] = useState(null)
+  const [forecastChartData, setForecastChartData] = useState([])
   
   // Обрабатываем данные: если это массив, берем первый элемент, иначе используем сам объект
   const result = Array.isArray(data) ? data[0] : data
@@ -48,6 +57,32 @@ const Results = ({ data, onNewSearch }) => {
       }
     }
   }, [showMinTooltip, showMaxTooltip])
+  
+  // Автофокус на блок "Результаты оценки" после получения исторических данных
+  useEffect(() => {
+    if (result && resultsHeaderRef.current) {
+      // Небольшая задержка для завершения рендеринга
+      setTimeout(() => {
+        resultsHeaderRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        })
+      }, 100)
+    }
+  }, [result])
+  
+  // Автофокус на блок "Прогноз изменения цены" после получения прогноза
+  useEffect(() => {
+    if (forecastData && forecastChartData.length > 0 && forecastChartRef.current) {
+      // Небольшая задержка для завершения рендеринга
+      setTimeout(() => {
+        forecastChartRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        })
+      }, 100)
+    }
+  }, [forecastData, forecastChartData])
 
   // Логирование для отладки
   console.log('Results component - data:', data)
@@ -81,6 +116,48 @@ const Results = ({ data, onNewSearch }) => {
     
     return [domainMin, domainMax]
   }, [chartData])
+  
+  // Вычисляем диапазон для оси Y прогноза (только прогнозные данные)
+  const forecastYAxisDomain = useMemo(() => {
+    const forecastOnly = forecastChartData.filter(item => item.isForecast)
+    if (forecastOnly.length === 0) return [0, 'auto']
+    
+    const prices = forecastOnly.map(item => item.price).filter(price => typeof price === 'number')
+    if (prices.length === 0) return [0, 'auto']
+    
+    const minPrice = Math.min(...prices)
+    const maxPrice = Math.max(...prices)
+    
+    const domainMin = Math.max(0, minPrice * 0.8)
+    const domainMax = maxPrice * 1.2
+    
+    return [domainMin, domainMax]
+  }, [forecastChartData])
+  
+  // Функция для получения прогноза
+  const handleGetForecast = async () => {
+    if (!result?.analytics || result.analytics.length < 3 || !result?.address) {
+      return
+    }
+    
+    setForecastLoading(true)
+    setForecastError(null)
+    
+    try {
+      const data = await getMLForecast(result.analytics, result.address)
+      setForecastData(data)
+      
+      // Форматируем данные для графика
+      const lastHistorical = result.analytics[result.analytics.length - 1]
+      const chartData = formatForecastForChart(data, lastHistorical.date, lastHistorical.avgPrice)
+      setForecastChartData(chartData)
+    } catch (err) {
+      console.error('Ошибка получения прогноза:', err)
+      setForecastError('Не удалось получить прогноз. Попробуйте позже.')
+    } finally {
+      setForecastLoading(false)
+    }
+  }
   
   const generatePDF = async () => {
     setIsGeneratingPDF(true)
@@ -506,7 +583,7 @@ const Results = ({ data, onNewSearch }) => {
 
   return (
     <div className="results">
-      <div className="results-header">
+      <div className="results-header" ref={resultsHeaderRef}>
         <h2>Результаты оценки</h2>
         <div className="results-header-actions">
           {onNewSearch && (
@@ -749,12 +826,46 @@ const Results = ({ data, onNewSearch }) => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-              {result?.analytics && result.analytics.length >= 3 && result?.address && (
-            <PriceForecast 
-              analytics={result.analytics} 
-              address={result.address}
-            />
-          )}
+              
+              {/* Кнопка и текст для получения прогноза */}
+              {!forecastData && !forecastLoading && !forecastError && result?.analytics && result.analytics.length >= 3 && (
+                <div className="forecast-request-section">
+                  <p className="forecast-request-text">
+                    Получите прогноз изменения цены на основе анализа исторических данных с помощью ML модели.
+                  </p>
+                  <button 
+                    className="get-forecast-button"
+                    onClick={handleGetForecast}
+                    disabled={forecastLoading}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2v20M2 12h20"></path>
+                      <path d="M12 6v12M6 12h12"></path>
+                    </svg>
+                    <span>Получить прогноз цен</span>
+                  </button>
+                </div>
+              )}
+              
+              {/* Индикатор загрузки прогноза */}
+              {forecastLoading && (
+                <div className="forecast-loading-section">
+                  <div className="loading-spinner"></div>
+                  <p>Генерация прогноза через ML...</p>
+                </div>
+              )}
+              
+              {/* Ошибка получения прогноза */}
+              {forecastError && (
+                <div className="forecast-error-section">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <p>{forecastError}</p>
+                </div>
+              )}
             </div>
             <div className="chart-disclaimer">
               <div className="disclaimer-header">
@@ -795,13 +906,80 @@ const Results = ({ data, onNewSearch }) => {
             </div>
           </div>
 
-          {/* Компонент прогноза цены через ML */}
-          {/* {result?.analytics && result.analytics.length >= 3 && result?.address && (
-            <PriceForecast 
-              analytics={result.analytics} 
-              address={result.address}
-            />
-          )} */}
+              {/* График и данные прогноза */}
+          {forecastData && forecastChartData.length > 0 && (
+            <>
+              <div className="result-card chart-card forecast-chart-card" ref={forecastChartRef}>
+                <div className="card-header">
+                  <div className="card-header-left">
+                    <div className="card-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2v20M2 12h20"></path>
+                        <path d="M12 6v12M6 12h12"></path>
+                      </svg>
+                    </div>
+                    <h3>Прогноз изменения цены</h3>
+                  </div>
+                </div>
+                <div className="chart-container">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={forecastChartData.filter(item => item.isForecast)} margin={{ top: 10, right: 10, left: 0, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="var(--text-secondary)"
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval="preserveStartEnd"
+                        tickFormatter={(value) => formatDate(value)}
+                      />
+                      <YAxis 
+                        stroke="var(--text-secondary)"
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                        tickFormatter={(value) => `${(value / 1000000).toFixed(1)}М`}
+                        width={50}
+                        domain={forecastYAxisDomain}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--card-bg)',
+                          border: `1px solid var(--border)`,
+                          borderRadius: '8px',
+                          color: 'var(--text-primary)',
+                          padding: '8px 12px',
+                        }}
+                        formatter={(value, name, props) => {
+                          const period = props.payload?.period
+                          const label = period ? `Прогноз (${period})` : 'Прогноз'
+                          return [formatPrice(value), label]
+                        }}
+                        labelStyle={{ color: 'var(--text-primary)', marginBottom: '4px' }}
+                        labelFormatter={(value) => formatDate(value)}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="price"
+                        stroke="#ef4444"
+                        strokeWidth={2.5}
+                        strokeDasharray="8 4"
+                        dot={{ fill: '#ef4444', r: 3 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              
+              {/* Компонент прогноза цены через ML */}
+              <PriceForecast 
+                forecastData={forecastData}
+                analytics={result.analytics}
+                address={result.address}
+              />
+            </>
+          )}
 
           {chartExpanded && (
             <div className="chart-modal" onClick={() => setChartExpanded(false)}>

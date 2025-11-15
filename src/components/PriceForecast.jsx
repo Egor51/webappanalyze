@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react'
-import { getMLForecast } from '../utils/forecastML'
 import './PriceForecast.css'
 
 const formatPrice = (price) => {
@@ -12,76 +10,12 @@ const formatPrice = (price) => {
   return price
 }
 
-const PriceForecast = ({ analytics, address }) => {
-  const [forecastData, setForecastData] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    if (!analytics || analytics.length < 3 || !address) {
-      return
-    }
-
-    const fetchForecast = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const data = await getMLForecast(analytics, address)
-        setForecastData(data)
-      } catch (err) {
-        console.error('Ошибка получения прогноза:', err)
-        setError('Не удалось получить прогноз. Попробуйте позже.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchForecast()
-  }, [analytics, address])
-
-  if (!analytics || analytics.length < 3) {
-    return (
-      <div className="forecast-unavailable">
-        <div className="forecast-unavailable-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-        </div>
-        <p>Недостаточно данных для прогноза</p>
-        <span>Для прогноза необходимо минимум 3 месяца истории цен</span>
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div className="forecast-section">
-        <div className="forecast-loading">
-          <div className="loading-spinner"></div>
-          <p>Генерация прогноза через ML...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="forecast-section">
-        <div className="forecast-error">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <p>{error}</p>
-        </div>
-      </div>
-    )
-  }
-
+const PriceForecast = ({ forecastData, analytics, address }) => {
   if (!forecastData || !forecastData.forecast) {
+    return null
+  }
+  
+  if (!analytics || analytics.length < 3) {
     return null
   }
 
@@ -159,7 +93,7 @@ const PriceForecast = ({ analytics, address }) => {
         </svg>
         <span>
         
-          Прогноз сгенерирован с использованием ML модели (GPT-4o) на основе исторических данных. 
+          Прогноз сгенерирован с использованием ML модели на основе исторических данных. 
           Результаты носят информационный характер и могут не учитывать все внешние факторы.
         </span>
       </div>
