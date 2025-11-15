@@ -159,6 +159,24 @@ const Results = ({ data, onNewSearch }) => {
     }
   }
   
+  // Отладочная информация для проверки условий отображения кнопки
+  // Условие: минимум 2 точки данных (смягчено для Telegram)
+  const shouldShowForecastButton = !forecastData && !forecastLoading && !forecastError && result?.analytics && result.analytics.length >= 2 && result?.address
+  useEffect(() => {
+    if (result?.analytics) {
+      console.log('Отладка прогноза:', {
+        hasAnalytics: !!result.analytics,
+        analyticsLength: result.analytics?.length,
+        hasAddress: !!result?.address,
+        forecastData: !!forecastData,
+        forecastLoading,
+        forecastError: !!forecastError,
+        shouldShowButton: shouldShowForecastButton,
+        userAgent: navigator.userAgent
+      })
+    }
+  }, [result, forecastData, forecastLoading, forecastError, shouldShowForecastButton])
+  
   const generatePDF = async () => {
     setIsGeneratingPDF(true)
     try {
@@ -826,47 +844,47 @@ const Results = ({ data, onNewSearch }) => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-              
-              {/* Кнопка и текст для получения прогноза */}
-              {!forecastData && !forecastLoading && !forecastError && result?.analytics && result.analytics.length >= 3 && (
-                <div className="forecast-request-section">
-                  <p className="forecast-request-text">
-                    Получите прогноз изменения цены на основе анализа исторических данных с помощью ML модели.
-                  </p>
-                  <button 
-                    className="get-forecast-button"
-                    onClick={handleGetForecast}
-                    disabled={forecastLoading}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2v20M2 12h20"></path>
-                      <path d="M12 6v12M6 12h12"></path>
-                    </svg>
-                    <span>Получить прогноз цен</span>
-                  </button>
-                </div>
-              )}
-              
-              {/* Индикатор загрузки прогноза */}
-              {forecastLoading && (
-                <div className="forecast-loading-section">
-                  <div className="loading-spinner"></div>
-                  <p>Генерация прогноза через ML...</p>
-                </div>
-              )}
-              
-              {/* Ошибка получения прогноза */}
-              {forecastError && (
-                <div className="forecast-error-section">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                  <p>{forecastError}</p>
-                </div>
-              )}
             </div>
+            
+            {/* Кнопка и текст для получения прогноза - вынесено за пределы chart-container */}
+            {shouldShowForecastButton && (
+              <div className="forecast-request-section">
+                <p className="forecast-request-text">
+                  Получите прогноз изменения цены на основе анализа исторических данных с помощью ML модели.
+                </p>
+                <button 
+                  className="get-forecast-button"
+                  onClick={handleGetForecast}
+                  disabled={forecastLoading}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2v20M2 12h20"></path>
+                    <path d="M12 6v12M6 12h12"></path>
+                  </svg>
+                  <span>Получить прогноз цен</span>
+                </button>
+              </div>
+            )}
+            
+            {/* Индикатор загрузки прогноза */}
+            {forecastLoading && (
+              <div className="forecast-loading-section">
+                <div className="loading-spinner"></div>
+                <p>Генерация прогноза через ML...</p>
+              </div>
+            )}
+            
+            {/* Ошибка получения прогноза */}
+            {forecastError && (
+              <div className="forecast-error-section">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <p>{forecastError}</p>
+              </div>
+            )}
             <div className="chart-disclaimer">
               <div className="disclaimer-header">
                 <div className="disclaimer-icon">

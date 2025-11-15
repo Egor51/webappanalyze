@@ -906,6 +906,10 @@
   padding: 24px;
   margin-top: 20px;
   border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .forecast-request-text {
@@ -918,7 +922,7 @@
 }
 
 .get-forecast-button {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
@@ -932,6 +936,12 @@
   transition: all 0.3s ease;
   font-family: inherit;
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative;
+  z-index: 10;
+  width: auto;
+  min-width: 200px;
 }
 
 .get-forecast-button:hover:not(:disabled) {
