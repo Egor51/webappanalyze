@@ -78,7 +78,7 @@ const SEARCH_TYPES = [
   },
 ]
 
-const SearchForm = ({ onSearch, searchType: externalSearchType, onSearchTypeChange }) => {
+const SearchForm = ({ onSearch, searchType: externalSearchType, onSearchTypeChange, onGetAllCities }) => {
   // Используем внешний searchType, если передан, иначе внутреннее состояние
   const [internalSearchType, setInternalSearchType] = useState('address')
   const searchType = externalSearchType !== undefined ? externalSearchType : internalSearchType

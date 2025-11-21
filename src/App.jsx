@@ -6,6 +6,9 @@ import SearchHistory from './components/SearchHistory'
 import Results from './components/Results'
 import Loader from './components/Loader'
 import Instructions from './components/Instructions'
+import Investing from './components/Investing'
+import CitiesAnalytics from './components/CitiesAnalytics'
+import AllCitiesBlock from './components/AllCitiesBlock'
 import { saveSearchToHistory } from './utils/searchHistory'
 import './App.css'
 
@@ -18,6 +21,10 @@ function App() {
   const [telegramUser, setTelegramUser] = useState(null)
   const [historyRefresh, setHistoryRefresh] = useState(0)
   const [searchType, setSearchType] = useState('address')
+  const [currentScreen, setCurrentScreen] = useState('search') // 'search' или 'investing'
+  const [citiesData, setCitiesData] = useState(null)
+  const [citiesLoading, setCitiesLoading] = useState(false)
+  const [citiesError, setCitiesError] = useState(null)
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -352,6 +359,73 @@ function App() {
     // Очищаем данные для нового поиска
     setData(null)
     setError(null)
+    setCitiesData(null)
+    setCitiesError(null)
+  }
+
+  const handleGetAllCities = async () => {
+    setCitiesLoading(true)
+    setCitiesError(null)
+    setCitiesData(null)
+    setData(null)
+    setError(null)
+    setNoData(false)
+
+    try {
+      const baseUrl = 'http://localhost:8081'
+      const params = new URLSearchParams()
+      params.append('page', '0')
+      params.append('size', '50')
+      
+      const apiUrl = `${baseUrl}/ads/analytic/city/all?${params.toString()}`
+      
+      console.log('Запрос к API для всех городов:', apiUrl)
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'omit',
+        headers: {
+          'Accept': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Сервер вернул ошибку с кодом ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('Данные всех городов:', data)
+      
+      if (!data || !data.content || data.content.length === 0) {
+        setCitiesError('Данные не найдены')
+        return
+      }
+
+      setCitiesData(data)
+    } catch (err) {
+      console.error('Ошибка при загрузке данных всех городов:', err)
+      setCitiesError(err.message || 'Произошла ошибка при загрузке данных')
+    } finally {
+      setCitiesLoading(false)
+    }
+  }
+
+  const handleCityClick = (cityName) => {
+    // При клике на город автоматически выполняем поиск аналитики по этому городу
+    setCitiesData(null)
+    setCitiesError(null)
+    // Устанавливаем тип поиска на "city"
+    setSearchType('city')
+    // Автоматически выполняем поиск с дефолтными параметрами
+    // Используем "Весь" для countRoom и "all" для propertyType, чтобы получить общую аналитику
+    handleSearch(cityName, 'Весь', 'city', 'all')
+  }
+
+  const handleBackFromCities = () => {
+    setCitiesData(null)
+    setCitiesError(null)
   }
 
   // Показываем начальный лоадер
@@ -368,47 +442,77 @@ function App() {
   return (
     <ThemeProvider>
       <div className="app">
-        <Header />
+        <Header onNavigateToInvesting={() => setCurrentScreen('investing')} />
         <main className="main-content">
-          <SearchForm 
-            onSearch={handleSearch} 
-            searchType={searchType}
-            onSearchTypeChange={setSearchType}
-          />
-          {noData && !loading && (
-            <div className="no-data-message">
-              <div className="no-data-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-              </div>
-              <h3>Данные не найдены</h3>
-              <p>По вашему запросу не найдено данных о недвижимости. Попробуйте изменить параметры поиска.</p>
-            </div>
-          )}
-          {!data && !loading && !error && !noData && (
+          {currentScreen === 'investing' ? (
+            <Investing onBack={() => setCurrentScreen('search')} />
+          ) : (
             <>
-              <SearchHistory 
-                onSelectSearch={handleSelectFromHistory}
-                refreshTrigger={historyRefresh}
+              <SearchForm 
+                onSearch={handleSearch} 
+                searchType={searchType}
+                onSearchTypeChange={setSearchType}
               />
-              <Instructions searchType={searchType} />
+              {!data && !loading && !citiesData && !citiesLoading && (
+                <AllCitiesBlock 
+                  onGetAllCities={handleGetAllCities}
+                  searchType={searchType}
+                />
+              )}
+              {noData && !loading && (
+                <div className="no-data-message">
+                  <div className="no-data-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                  </div>
+                  <h3>Данные не найдены</h3>
+                  <p>По вашему запросу не найдено данных о недвижимости. Попробуйте изменить параметры поиска.</p>
+                </div>
+              )}
+              {!data && !loading && !error && !noData && !citiesData && !citiesLoading && (
+                <>
+                  <SearchHistory 
+                    onSelectSearch={handleSelectFromHistory}
+                    refreshTrigger={historyRefresh}
+                  />
+                  <Instructions searchType={searchType} />
+                </>
+              )}
+              {citiesLoading && <Loader />}
+              {citiesError && (
+                <div className="error-message">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <p>{citiesError}</p>
+                </div>
+              )}
+              {citiesData && !citiesLoading && (
+                <CitiesAnalytics 
+                  data={citiesData} 
+                  onBack={handleBackFromCities}
+                  onCityClick={handleCityClick}
+                />
+              )}
+              {loading && !citiesLoading && <Loader />}
+              {error && !citiesError && (
+                <div className="error-message">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <p>{error}</p>
+                </div>
+              )}
+              {data && !loading && !citiesData && <Results data={data} onNewSearch={handleNewSearch} />}
             </>
           )}
-          {loading && <Loader />}
-          {error && (
-            <div className="error-message">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-              <p>{error}</p>
-            </div>
-          )}
-          {data && !loading && <Results data={data} onNewSearch={handleNewSearch} />}
         </main>
       </div>
     </ThemeProvider>
