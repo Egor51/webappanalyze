@@ -370,7 +370,7 @@ function App() {
     setNoData(false)
 
     try {
-      const baseUrl = 'http://localhost:8081'
+      const baseUrl = 'https://murmanclick.ru'
       const params = new URLSearchParams()
       params.append('page', '0')
       params.append('size', '50')
