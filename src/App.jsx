@@ -6,7 +6,6 @@ import SearchHistory from './components/SearchHistory'
 import Results from './components/Results'
 import Loader from './components/Loader'
 import Instructions from './components/Instructions'
-import Investing from './components/Investing'
 import CitiesAnalytics from './components/CitiesAnalytics'
 import AllCitiesBlock from './components/AllCitiesBlock'
 import { saveSearchToHistory } from './utils/searchHistory'
@@ -21,7 +20,6 @@ function App() {
   const [telegramUser, setTelegramUser] = useState(null)
   const [historyRefresh, setHistoryRefresh] = useState(0)
   const [searchType, setSearchType] = useState('address')
-  const [currentScreen, setCurrentScreen] = useState('search') // 'search' или 'investing'
   const [citiesData, setCitiesData] = useState(null)
   const [citiesLoading, setCitiesLoading] = useState(false)
   const [citiesError, setCitiesError] = useState(null)
@@ -442,12 +440,9 @@ function App() {
   return (
     <ThemeProvider>
       <div className="app">
-        <Header onNavigateToInvesting={() => setCurrentScreen('investing')} />
+        <Header />
         <main className="main-content">
-          {currentScreen === 'investing' ? (
-            <Investing onBack={() => setCurrentScreen('search')} />
-          ) : (
-            <>
+          <>
               <SearchForm 
                 onSearch={handleSearch} 
                 searchType={searchType}
@@ -511,8 +506,7 @@ function App() {
                 </div>
               )}
               {data && !loading && !citiesData && <Results data={data} onNewSearch={handleNewSearch} />}
-            </>
-          )}
+          </>
         </main>
       </div>
     </ThemeProvider>
