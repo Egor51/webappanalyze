@@ -180,19 +180,6 @@
   transition: opacity 0.3s ease;
 }
 
-.city-card.clickable {
-  cursor: pointer;
-}
-
-.city-card.clickable:hover {
-  border-color: var(--accent);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-
-.city-card.clickable:hover::before {
-  opacity: 1;
-}
 
 .city-card.no-data {
   opacity: 0.7;
@@ -218,18 +205,6 @@
   background-clip: text;
 }
 
-.city-card-arrow {
-  flex-shrink: 0;
-  color: var(--text-secondary);
-  transition: all 0.3s ease;
-  opacity: 0;
-}
-
-.city-card.clickable:hover .city-card-arrow {
-  opacity: 1;
-  color: var(--accent);
-  transform: translateX(4px);
-}
 
 .city-card-stats {
   display: grid;
@@ -450,7 +425,7 @@
   }
 
   .cities-cards-container {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 

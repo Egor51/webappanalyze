@@ -29,7 +29,7 @@ const formatDate = (dateArray) => {
   })
 }
 
-const CitiesAnalytics = ({ data, onBack, onCityClick }) => {
+const CitiesAnalytics = ({ data, onBack }) => {
   const [sortField, setSortField] = useState('city')
   const [sortDirection, setSortDirection] = useState('asc')
   const [currentPage, setCurrentPage] = useState(0)
@@ -139,11 +139,6 @@ const CitiesAnalytics = ({ data, onBack, onCityClick }) => {
     )
   }
 
-  const handleCityClick = (city) => {
-    if (onCityClick && city.price !== 'no content') {
-      onCityClick(city.city)
-    }
-  }
 
   // Пагинация
   const totalPages = Math.ceil(sortedCities.length / itemsPerPage)
@@ -225,16 +220,10 @@ const CitiesAnalytics = ({ data, onBack, onCityClick }) => {
           return (
             <div
               key={city.id}
-              className={`city-card ${hasData ? 'clickable' : 'no-data'}`}
-              onClick={() => hasData && handleCityClick(city)}
+              className={`city-card ${hasData ? '' : 'no-data'}`}
             >
               <div className="city-card-header">
                 <h3 className="city-card-name">{city.city}</h3>
-                {hasData && (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="city-card-arrow">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
-                )}
               </div>
               
               {hasData ? (

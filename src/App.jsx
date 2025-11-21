@@ -410,16 +410,6 @@ function App() {
     }
   }
 
-  const handleCityClick = (cityName) => {
-    // При клике на город автоматически выполняем поиск аналитики по этому городу
-    setCitiesData(null)
-    setCitiesError(null)
-    // Устанавливаем тип поиска на "city"
-    setSearchType('city')
-    // Автоматически выполняем поиск с дефолтными параметрами
-    // Используем "Весь" для countRoom и "all" для propertyType, чтобы получить общую аналитику
-    handleSearch(cityName, 'Весь', 'city', 'all')
-  }
 
   const handleBackFromCities = () => {
     setCitiesData(null)
@@ -491,7 +481,6 @@ function App() {
                 <CitiesAnalytics 
                   data={citiesData} 
                   onBack={handleBackFromCities}
-                  onCityClick={handleCityClick}
                 />
               )}
               {loading && !citiesLoading && <Loader />}
