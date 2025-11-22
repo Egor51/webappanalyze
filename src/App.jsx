@@ -6,8 +6,9 @@ import SearchHistory from './components/SearchHistory'
 import Results from './components/Results'
 import Loader from './components/Loader'
 import Instructions from './components/Instructions'
-import CitiesAnalytics from './components/CitiesAnalytics'
 import AllCitiesBlock from './components/AllCitiesBlock'
+import CitiesAnalytics from './components/CitiesAnalytics'
+import Investing from './components/Investing'
 import { saveSearchToHistory } from './utils/searchHistory'
 import './App.css'
 
@@ -23,6 +24,7 @@ function App() {
   const [citiesData, setCitiesData] = useState(null)
   const [citiesLoading, setCitiesLoading] = useState(false)
   const [citiesError, setCitiesError] = useState(null)
+  const [currentScreen, setCurrentScreen] = useState('search') // 'search' или 'investing'
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -416,6 +418,18 @@ function App() {
     setCitiesError(null)
   }
 
+  const handleNavigateToInvesting = () => {
+    setCurrentScreen('investing')
+    setData(null)
+    setError(null)
+    setCitiesData(null)
+    setCitiesError(null)
+  }
+
+  const handleBackFromInvesting = () => {
+    setCurrentScreen('search')
+  }
+
   // Показываем начальный лоадер
   if (initialLoading) {
     return (
@@ -430,72 +444,80 @@ function App() {
   return (
     <ThemeProvider>
       <div className="app">
-        <Header />
+        <Header 
+          currentScreen={currentScreen}
+          onNavigateToInvesting={handleNavigateToInvesting}
+          onNavigateToSearch={handleBackFromInvesting}
+        />
         <main className="main-content">
+          {currentScreen === 'investing' ? (
+            <Investing />
+          ) : (
           <>
-              <SearchForm 
-                onSearch={handleSearch} 
-                searchType={searchType}
-                onSearchTypeChange={setSearchType}
+          <SearchForm 
+            onSearch={handleSearch} 
+            searchType={searchType}
+            onSearchTypeChange={setSearchType}
+          />
+          {noData && !loading && (
+            <div className="no-data-message">
+              <div className="no-data-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+              </div>
+              <h3>Данные не найдены</h3>
+              <p>По вашему запросу не найдено данных о недвижимости. Попробуйте изменить параметры поиска.</p>
+            </div>
+          )}
+          {!data && !loading && !citiesData && !citiesLoading && (
+            <AllCitiesBlock 
+              onGetAllCities={handleGetAllCities}
+              searchType={searchType}
+            />
+          )}
+          {!data && !loading && !error && !noData && !citiesData && !citiesLoading && (
+            <>
+              <SearchHistory 
+                onSelectSearch={handleSelectFromHistory}
+                refreshTrigger={historyRefresh}
               />
-              {!data && !loading && !citiesData && !citiesLoading && (
-                <AllCitiesBlock 
-                  onGetAllCities={handleGetAllCities}
-                  searchType={searchType}
-                />
-              )}
-              {noData && !loading && (
-                <div className="no-data-message">
-                  <div className="no-data-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                  </div>
-                  <h3>Данные не найдены</h3>
-                  <p>По вашему запросу не найдено данных о недвижимости. Попробуйте изменить параметры поиска.</p>
-                </div>
-              )}
-              {!data && !loading && !error && !noData && !citiesData && !citiesLoading && (
-                <>
-                  <SearchHistory 
-                    onSelectSearch={handleSelectFromHistory}
-                    refreshTrigger={historyRefresh}
-                  />
-                  <Instructions searchType={searchType} />
-                </>
-              )}
-              {citiesLoading && <Loader />}
-              {citiesError && (
-                <div className="error-message">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                  <p>{citiesError}</p>
-                </div>
-              )}
-              {citiesData && !citiesLoading && (
-                <CitiesAnalytics 
-                  data={citiesData} 
-                  onBack={handleBackFromCities}
-                />
-              )}
-              {loading && !citiesLoading && <Loader />}
-              {error && !citiesError && (
-                <div className="error-message">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                  <p>{error}</p>
-                </div>
-              )}
-              {data && !loading && !citiesData && <Results data={data} onNewSearch={handleNewSearch} />}
+              <Instructions searchType={searchType} />
+            </>
+          )}
+          {citiesLoading && <Loader />}
+          {citiesError && (
+            <div className="error-message">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p>{citiesError}</p>
+            </div>
+          )}
+          {citiesData && !citiesLoading && (
+            <CitiesAnalytics 
+              data={citiesData} 
+              onBack={handleBackFromCities}
+            />
+          )}
+          {loading && !citiesLoading && <Loader />}
+          {error && !citiesError && (
+            <div className="error-message">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p>{error}</p>
+            </div>
+          )}
+          {data && !loading && !citiesData && <Results data={data} onNewSearch={handleNewSearch} />}
           </>
+          )}
         </main>
       </div>
     </ThemeProvider>
