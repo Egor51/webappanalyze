@@ -8,6 +8,7 @@ import Loader from './components/Loader'
 import Instructions from './components/Instructions'
 import AllCitiesBlock from './components/AllCitiesBlock'
 import CitiesAnalytics from './components/CitiesAnalytics'
+import Investing from './components/Investing'
 import { saveSearchToHistory } from './utils/searchHistory'
 import './App.css'
 
@@ -23,6 +24,7 @@ function App() {
   const [citiesData, setCitiesData] = useState(null)
   const [citiesLoading, setCitiesLoading] = useState(false)
   const [citiesError, setCitiesError] = useState(null)
+  const [currentScreen, setCurrentScreen] = useState('search') // 'search' или 'investing'
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -416,6 +418,18 @@ function App() {
     setCitiesError(null)
   }
 
+  const handleNavigateToInvesting = () => {
+    setCurrentScreen('investing')
+    setData(null)
+    setError(null)
+    setCitiesData(null)
+    setCitiesError(null)
+  }
+
+  const handleBackFromInvesting = () => {
+    setCurrentScreen('search')
+  }
+
   // Показываем начальный лоадер
   if (initialLoading) {
     return (
@@ -430,8 +444,16 @@ function App() {
   return (
     <ThemeProvider>
       <div className="app">
-        <Header />
+        <Header 
+          currentScreen={currentScreen}
+          onNavigateToInvesting={handleNavigateToInvesting}
+          onNavigateToSearch={handleBackFromInvesting}
+        />
         <main className="main-content">
+          {currentScreen === 'investing' ? (
+            <Investing />
+          ) : (
+          <>
           <SearchForm 
             onSearch={handleSearch} 
             searchType={searchType}
@@ -507,6 +529,8 @@ function App() {
             </div>
           )}
           {data && !loading && !citiesData && <Results data={data} onNewSearch={handleNewSearch} />}
+          </>
+          )}
         </main>
       </div>
     </ThemeProvider>
