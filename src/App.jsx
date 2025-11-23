@@ -9,7 +9,9 @@ import Instructions from './components/Instructions'
 import AllCitiesBlock from './components/AllCitiesBlock'
 import CitiesAnalytics from './components/CitiesAnalytics'
 import Investing from './components/Investing'
+import InvestingAuthModal from './components/InvestingAuthModal'
 import { saveSearchToHistory } from './utils/searchHistory'
+import { isInvestingAuthorized } from './utils/investingAuth'
 import { getApiBaseUrl } from './config/api'
 import './App.css'
 
@@ -26,6 +28,14 @@ function App() {
   const [citiesLoading, setCitiesLoading] = useState(false)
   const [citiesError, setCitiesError] = useState(null)
   const [currentScreen, setCurrentScreen] = useState('search') // 'search' или 'investing'
+  const [isInvestingAuthModalOpen, setIsInvestingAuthModalOpen] = useState(false)
+  const [investingAuthStatus, setInvestingAuthStatus] = useState(false)
+
+  useEffect(() => {
+    // Проверяем авторизацию для раздела инвестиций
+    const authorized = isInvestingAuthorized()
+    setInvestingAuthStatus(authorized)
+  }, [])
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -136,8 +146,21 @@ function App() {
       } else {
         // Запрос по адресу (старый формат)
         // Формируем адрес: если не указан город, добавляем "Мурманск"
+        // НО: если адрес уже содержит название другого города (Оленегорск, Апатиты и т.д.), не добавляем Мурманск
         let fullAddress = originalAddress
-        if (!fullAddress.toLowerCase().includes('мурманск')) {
+        const addressLower = fullAddress.toLowerCase()
+        
+        // Список городов Мурманской области (кроме Мурманска)
+        const otherCities = ['оленегорск', 'апатиты', 'кировск', 'мончегорск', 'полярные зори', 
+                           'полярный', 'североморск', 'заозерск', 'гаджиево', 'снежногорск',
+                           'кандалакша', 'кола', 'порья губа', 'заполярный', 'печенга']
+        
+        // Проверяем, содержит ли адрес название другого города
+        const hasOtherCity = otherCities.some(city => addressLower.includes(city))
+        const hasMurmansk = addressLower.includes('мурманск')
+        
+        // Добавляем "Мурманск" только если нет ни Мурманска, ни другого города
+        if (!hasMurmansk && !hasOtherCity) {
           fullAddress = `Мурманск ${fullAddress}`
         }
         
@@ -422,11 +445,31 @@ function App() {
   }
 
   const handleNavigateToInvesting = () => {
+    // Проверяем авторизацию перед переходом
+    const authorized = isInvestingAuthorized()
+    if (authorized) {
+      setCurrentScreen('investing')
+      setData(null)
+      setError(null)
+      setCitiesData(null)
+      setCitiesError(null)
+    } else {
+      // Открываем модальное окно авторизации
+      setIsInvestingAuthModalOpen(true)
+    }
+  }
+
+  const handleInvestingAuthSuccess = () => {
+    setInvestingAuthStatus(true)
     setCurrentScreen('investing')
     setData(null)
     setError(null)
     setCitiesData(null)
     setCitiesError(null)
+  }
+
+  const handleInvestingAuthModalClose = () => {
+    setIsInvestingAuthModalOpen(false)
   }
 
   const handleBackFromInvesting = () => {
@@ -453,6 +496,11 @@ function App() {
           onNavigateToSearch={handleBackFromInvesting}
         />
         <main className="main-content">
+          <InvestingAuthModal
+            isOpen={isInvestingAuthModalOpen}
+            onClose={handleInvestingAuthModalClose}
+            onSuccess={handleInvestingAuthSuccess}
+          />
           {currentScreen === 'investing' ? (
             <Investing />
           ) : (
