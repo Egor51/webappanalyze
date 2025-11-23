@@ -23,10 +23,38 @@ const InvestmentDetailView = ({ option, onBack }) => {
     if (!option || !option.analyticsResponse || !option.analyticsResponse.analytics || !Array.isArray(option.analyticsResponse.analytics)) {
       return []
     }
-    return option.analyticsResponse.analytics.map(item => ({
-      date: item.date,
-      price: item.avgPrice
-    }))
+    
+    return option.analyticsResponse.analytics
+      .map(item => {
+        if (!item || typeof item !== 'object') {
+          return null
+        }
+        
+        const price = typeof item.avgPrice === 'number' ? item.avgPrice : (typeof item.price === 'number' ? item.price : null)
+        if (price === null || isNaN(price) || price <= 0) {
+          return null
+        }
+        
+        // Проверяем валидность даты
+        if (!item.date) {
+          return null
+        }
+        const date = new Date(item.date)
+        if (isNaN(date.getTime())) {
+          return null
+        }
+        
+        return {
+          date: item.date,
+          price: price,
+          avgPrice: price, // Для совместимости
+        }
+      })
+      .filter(item => item !== null)
+      .sort((a, b) => {
+        // Сортируем по дате
+        return new Date(a.date) - new Date(b.date)
+      })
   }, [option])
 
   // Вычисление диапазона для оси Y
@@ -55,20 +83,26 @@ const InvestmentDetailView = ({ option, onBack }) => {
       <div className="detail-card">
         {/* Основная информация об объекте */}
         <div className="detail-header">
-          <h3 className="detail-address">{option.fullAddress}</h3>
+          <h3 className="detail-address">{option.fullAddress || 'Адрес не указан'}</h3>
           <div className="detail-basic-info">
-            <div className="detail-info-item">
-              <span className="detail-info-label">Площадь</span>
-              <span className="detail-info-value">{option.square} м²</span>
-            </div>
-            <div className="detail-info-item">
-              <span className="detail-info-label">Комнат</span>
-              <span className="detail-info-value">{option.countRoom || 'Не указано'}</span>
-            </div>
-            <div className="detail-info-item highlight">
-              <span className="detail-info-label">Цена</span>
-              <span className="detail-info-value price">{formatPrice(option.price)}</span>
-            </div>
+            {option.square != null && (
+              <div className="detail-info-item">
+                <span className="detail-info-label">Площадь</span>
+                <span className="detail-info-value">{option.square} м²</span>
+              </div>
+            )}
+            {option.countRoom != null && (
+              <div className="detail-info-item">
+                <span className="detail-info-label">Комнат</span>
+                <span className="detail-info-value">{option.countRoom}</span>
+              </div>
+            )}
+            {option.price != null && (
+              <div className="detail-info-item highlight">
+                <span className="detail-info-label">Цена</span>
+                <span className="detail-info-value price">{formatPrice(option.price)}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -102,13 +136,13 @@ const InvestmentDetailView = ({ option, onBack }) => {
               )}
               {option.analyticsResponse?.priceMin && (
                 <div className="analytics-item">
-                  <span className="analytics-label">Минимальная цена</span>
+                  <span className="analytics-label">Мин цена</span>
                   <span className="analytics-value">{option.analyticsResponse.priceMin}</span>
                 </div>
               )}
               {option.analyticsResponse?.priceMax && (
                 <div className="analytics-item">
-                  <span className="analytics-label">Максимальная цена</span>
+                  <span className="analytics-label">Макс цена</span>
                   <span className="analytics-value">{option.analyticsResponse.priceMax}</span>
                 </div>
               )}

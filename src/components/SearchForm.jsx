@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { getApiBaseUrl } from '../config/api'
 import './SearchForm.css'
 
 const BASE_ROOM_OPTIONS = [
@@ -117,7 +118,7 @@ const SearchForm = ({ onSearch, searchType: externalSearchType, onSearchTypeChan
     const timeoutId = setTimeout(async () => {
       setIsLoadingSuggestions(true)
       try {
-        const baseUrl = 'https://murmanclick.ru'
+        const baseUrl = getApiBaseUrl()
         let apiUrl = ''
         
         if (searchType === 'address') {

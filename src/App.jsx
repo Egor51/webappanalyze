@@ -10,6 +10,7 @@ import AllCitiesBlock from './components/AllCitiesBlock'
 import CitiesAnalytics from './components/CitiesAnalytics'
 import Investing from './components/Investing'
 import { saveSearchToHistory } from './utils/searchHistory'
+import { getApiBaseUrl } from './config/api'
 import './App.css'
 
 function App() {
@@ -95,7 +96,7 @@ function App() {
     const originalAddress = address.trim()
 
     try {
-      const baseUrl = 'https://murmanclick.ru'
+      const baseUrl = getApiBaseUrl()
       let apiUrl = ''
       
       // Проверяем, нужно ли добавлять параметр countRoom
@@ -293,10 +294,12 @@ function App() {
       
       setData(data)
       
-      // Сохраняем поиск в историю (сохраняем исходный адрес)
-      saveSearchToHistory(originalAddress, countRoom)
-      // Обновляем историю в UI
-      setHistoryRefresh(prev => prev + 1)
+      // Сохраняем поиск в историю только для адресов (сохраняем исходный адрес)
+      if (searchType === 'address') {
+        saveSearchToHistory(originalAddress, countRoom)
+        // Обновляем историю в UI
+        setHistoryRefresh(prev => prev + 1)
+      }
       
       // Отправка данных на webhook после успешного анализа
       try {
@@ -372,7 +375,7 @@ function App() {
     setNoData(false)
 
     try {
-      const baseUrl = 'https://murmanclick.ru'
+      const baseUrl = getApiBaseUrl()
       const params = new URLSearchParams()
       params.append('page', '0')
       params.append('size', '50')
@@ -480,10 +483,12 @@ function App() {
           )}
           {!data && !loading && !error && !noData && !citiesData && !citiesLoading && (
             <>
-              <SearchHistory 
-                onSelectSearch={handleSelectFromHistory}
-                refreshTrigger={historyRefresh}
-              />
+              {searchType === 'address' && (
+                <SearchHistory 
+                  onSelectSearch={handleSelectFromHistory}
+                  refreshTrigger={historyRefresh}
+                />
+              )}
               <Instructions searchType={searchType} />
             </>
           )}

@@ -239,12 +239,18 @@
   border-radius: 12px;
   padding: 20px;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .investment-option-card:hover {
   border-color: var(--accent);
   box-shadow: var(--shadow);
   transform: translateY(-2px);
+}
+
+.investment-option-card:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .option-header {
@@ -350,6 +356,7 @@
   padding: 20px;
   transition: all 0.3s ease;
   position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .best-option-card.clickable {
@@ -360,6 +367,11 @@
   border-color: var(--accent);
   box-shadow: var(--shadow);
   transform: translateY(-2px);
+}
+
+.best-option-card.clickable:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .best-option-rank {
@@ -649,10 +661,6 @@
 
 .detail-analytics {
   margin-bottom: 24px;
-  padding: 24px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  border: 2px solid var(--border);
 }
 
 .analytics-title {
@@ -767,38 +775,16 @@
 
 @media (max-width: 768px) {
   .investing-screen {
-    padding: 16px;
+    padding: 12px;
   }
 
   .investing-title-section h2 {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .investing-tabs {
     flex-direction: column;
     gap: 0;
-  }
-
-  .detail-address {
-    font-size: 18px;
-  }
-
-  .detail-basic-info {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .analytics-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .analytics-item {
-    padding: 12px;
-  }
-
-  .detail-chart {
-    padding: 12px;
   }
 
   .investing-tab {
@@ -807,6 +793,7 @@
     border-bottom: 1px solid var(--border);
     border-left: 3px solid transparent;
     margin-bottom: 0;
+    padding: 14px 16px;
   }
 
   .investing-tab.active {
@@ -815,15 +802,283 @@
   }
 
   .investing-card {
-    padding: 20px;
+    padding: 16px;
+    border-radius: 12px;
   }
 
+  /* Улучшенные стили карточек для мобилок */
   .best-option-card {
-    flex-direction: column;
+    flex-direction: row;
+    padding: 14px;
+    gap: 12px;
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+    border: 1.5px solid var(--border);
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%);
+  }
+
+  .best-option-card.clickable:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    border-color: var(--accent);
   }
 
   .best-option-rank {
-    align-self: flex-start;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .best-option-content {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .best-option-address {
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+
+  .best-option-stats {
+    gap: 8px;
+  }
+
+  .best-stat-item {
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .best-stat-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .best-stat-item.highlight {
+    padding: 10px 12px;
+    margin: 6px 0;
+    border-radius: 10px;
+    border-bottom: none;
+    background: var(--bg-secondary);
+    border: 1px solid var(--accent);
+  }
+
+  .best-stat-label {
+    font-size: 12px;
+  }
+
+  .best-stat-value {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* Детальный просмотр - 2 колонки для мобилок */
+  .detail-header {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .detail-address {
+    font-size: 18px;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+
+  .detail-basic-info {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .detail-info-item {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--card-bg);
+    transition: all 0.2s ease;
+  }
+
+  .detail-info-item:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .detail-info-label {
+    font-size: 11px;
+  }
+
+  .detail-info-value {
+    font-size: 16px;
+  }
+
+  .detail-info-value.price {
+    font-size: 20px;
+  }
+
+  .detail-analytics {
+    margin-bottom: 20px;
+  }
+
+  .analytics-title {
+    font-size: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .analytics-item {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    transition: all 0.2s ease;
+  }
+
+  .analytics-item:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .analytics-label {
+    font-size: 11px;
+  }
+
+  .analytics-value {
+    font-size: 14px;
+  }
+
+  .detail-chart {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .chart-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .detail-actions {
+    margin-top: 16px;
+  }
+
+  .detail-url-button {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  /* Стили для карточек результатов поиска */
+  .investment-option-card {
+    padding: 14px;
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+    border: 1.5px solid var(--border);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%);
+  }
+
+  .investment-option-card:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    border-color: var(--accent);
+  }
+
+  .option-header {
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+
+  .option-address {
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .option-details {
+    gap: 6px;
+  }
+
+  .option-detail-item {
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .option-detail-item:last-child {
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .investing-screen {
+    padding: 8px;
+  }
+
+  .best-option-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .best-option-rank {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .best-option-address {
+    font-size: 14px;
+  }
+
+  .best-stat-item {
+    font-size: 12px;
+  }
+
+  .detail-basic-info {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .detail-info-value.price {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 380px) and (max-width: 480px) {
+  /* Для экранов от 380px - analytics-item и detail-basic-info в 2 колонки */
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .detail-basic-info {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
+
+@media (max-width: 379px) {
+  /* Для очень маленьких экранов - все в 1 колонку */
+  .analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .detail-basic-info {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
 

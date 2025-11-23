@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getMockInvestmentOptions, getMockBestOptions } from '../data/investmentTestData'
 import InvestmentDetailView from './InvestmentDetailView'
 import { buildApiUrl, API_CONFIG } from '../config/api'
+import { validateInvestmentOptionsArray, getInvestmentDataStats } from '../utils/investmentDataValidator'
 import './Investing.css'
 
 // Флаг для использования тестовых данных (для разработки)
@@ -66,10 +67,18 @@ const Investing = () => {
         }
 
         const data = await response.json()
+        
+        // Валидация и нормализация данных
+        const validatedData = validateInvestmentOptionsArray(Array.isArray(data) ? data : [])
+        
         if (import.meta.env.DEV) {
-          console.log('Данные лучших вариантов:', data)
+          console.log('Данные лучших вариантов (raw):', data)
+          console.log('Данные лучших вариантов (validated):', validatedData)
+          const stats = getInvestmentDataStats(validatedData)
+          console.log('Статистика данных:', stats)
         }
-        setBestOptions(Array.isArray(data) ? data : [])
+        
+        setBestOptions(validatedData)
       }
     } catch (err) {
       console.error('Ошибка загрузки лучших вариантов:', err)
@@ -122,10 +131,18 @@ const Investing = () => {
         }
 
         const data = await response.json()
+        
+        // Валидация и нормализация данных
+        const validatedData = validateInvestmentOptionsArray(Array.isArray(data) ? data : [])
+        
         if (import.meta.env.DEV) {
-          console.log('Данные поиска по бюджету:', data)
+          console.log('Данные поиска по бюджету (raw):', data)
+          console.log('Данные поиска по бюджету (validated):', validatedData)
+          const stats = getInvestmentDataStats(validatedData)
+          console.log('Статистика данных:', stats)
         }
-        setInvestmentOptions(Array.isArray(data) ? data : [])
+        
+        setInvestmentOptions(validatedData)
       }
     } catch (err) {
       console.error('Ошибка поиска инвестиционных вариантов:', err)
@@ -271,18 +288,24 @@ const Investing = () => {
                       </div>
                       
                       <div className="best-option-stats">
-                        <div className="best-stat-item">
-                          <span className="best-stat-label">Площадь:</span>
-                          <span className="best-stat-value">{option.square} м²</span>
-                        </div>
-                        <div className="best-stat-item">
-                          <span className="best-stat-label">Комнат:</span>
-                          <span className="best-stat-value">{option.countRoom || 'Не указано'}</span>
-                        </div>
-                        <div className="best-stat-item">
-                          <span className="best-stat-label">Цена:</span>
-                          <span className="best-stat-value">{formatPrice(option.price)}</span>
-                        </div>
+                        {option.square != null && (
+                          <div className="best-stat-item">
+                            <span className="best-stat-label">Площадь:</span>
+                            <span className="best-stat-value">{option.square} м²</span>
+                          </div>
+                        )}
+                        {option.countRoom != null && (
+                          <div className="best-stat-item">
+                            <span className="best-stat-label">Комнат:</span>
+                            <span className="best-stat-value">{option.countRoom}</span>
+                          </div>
+                        )}
+                        {option.price != null && (
+                          <div className="best-stat-item">
+                            <span className="best-stat-label">Цена:</span>
+                            <span className="best-stat-value">{formatPrice(option.price)}</span>
+                          </div>
+                        )}
                         {option.differencePercent != null && (
                           <div className="best-stat-item highlight">
                             <span className="best-stat-label">
@@ -373,18 +396,24 @@ const Investing = () => {
                             </div>
                             
                             <div className="best-option-stats">
-                              <div className="best-stat-item">
-                                <span className="best-stat-label">Площадь:</span>
-                                <span className="best-stat-value">{option.square} м²</span>
-                              </div>
-                              <div className="best-stat-item">
-                                <span className="best-stat-label">Комнат:</span>
-                                <span className="best-stat-value">{option.countRoom || 'Не указано'}</span>
-                              </div>
-                              <div className="best-stat-item">
-                                <span className="best-stat-label">Цена:</span>
-                                <span className="best-stat-value">{formatPrice(option.price)}</span>
-                              </div>
+                              {option.square != null && (
+                                <div className="best-stat-item">
+                                  <span className="best-stat-label">Площадь:</span>
+                                  <span className="best-stat-value">{option.square} м²</span>
+                                </div>
+                              )}
+                              {option.countRoom != null && (
+                                <div className="best-stat-item">
+                                  <span className="best-stat-label">Комнат:</span>
+                                  <span className="best-stat-value">{option.countRoom}</span>
+                                </div>
+                              )}
+                              {option.price != null && (
+                                <div className="best-stat-item">
+                                  <span className="best-stat-label">Цена:</span>
+                                  <span className="best-stat-value">{formatPrice(option.price)}</span>
+                                </div>
+                              )}
                               {option.differencePercent != null && (
                                 <div className="best-stat-item highlight">
                                   <span className="best-stat-label">
