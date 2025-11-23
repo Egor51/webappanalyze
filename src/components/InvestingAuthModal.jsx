@@ -38,7 +38,7 @@ const InvestingAuthModal = ({ isOpen, onClose, onSuccess }) => {
     setError('')
     
     // Тестовый код для разработки
-    const TEST_CODE = '9113007705'
+    const TEST_CODE = '29113'
     if (codeToCheck === TEST_CODE) {
       // Тестовый код валиден, сохраняем авторизацию
       saveInvestingAuth(codeToCheck)
