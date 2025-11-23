@@ -1,0 +1,269 @@
+.events-feed {
+  width: 100%;
+}
+
+.events-feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.events-feed-header h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+}
+
+.events-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.events-pro-badge {
+  padding: 6px 12px;
+  background: var(--accent-gradient);
+  border-radius: 12px;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.events-pro-banner {
+  padding: 16px;
+  background: var(--accent-gradient);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.events-pro-banner p {
+  margin: 0;
+  font-size: 14px;
+  flex: 1;
+}
+
+.events-pro-button {
+  padding: 8px 16px;
+  background: white;
+  border: none;
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.events-pro-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.events-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.events-filter {
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.events-filter:hover {
+  border-color: var(--accent);
+  background: var(--bg-primary);
+}
+
+.events-filter.active {
+  background: var(--accent-gradient);
+  border-color: transparent;
+  color: white;
+}
+
+.events-loading,
+.events-error,
+.events-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.events-error button {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: var(--accent-gradient);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.event-item:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateX(4px);
+}
+
+.event-item.event-high {
+  border-left: 4px solid var(--error);
+}
+
+.event-item.event-medium {
+  border-left: 4px solid var(--warning);
+}
+
+.event-item.event-low {
+  border-left: 4px solid var(--accent);
+}
+
+.event-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.event-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.event-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.event-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.event-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.event-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.event-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.event-priority-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  background: var(--error);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Мобильные устройства */
+@media (max-width: 480px) {
+  .events-feed-header {
+    flex-direction: column;
+  }
+
+  .events-pro-banner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .events-pro-button {
+    width: 100%;
+  }
+
+  .events-filters {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+
+  .events-filters::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .event-item {
+    padding: 12px;
+  }
+
+  .event-header {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .event-time {
+    align-self: flex-end;
+  }
+}
+

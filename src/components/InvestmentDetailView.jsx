@@ -1,5 +1,8 @@
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { saveDeal } from '../utils/investorProfile'
+import ExpertModal from './investing/ExpertModal'
+import CheckupModal from './investing/CheckupModal'
 import './Investing.css'
 
 const formatPrice = (price) => {
@@ -17,7 +20,10 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' })
 }
 
-const InvestmentDetailView = ({ option, onBack }) => {
+const InvestmentDetailView = ({ option, onBack, isPro = false }) => {
+  const [isSaved, setIsSaved] = useState(false)
+  const [showExpertModal, setShowExpertModal] = useState(false)
+  const [showCheckupModal, setShowCheckupModal] = useState(false)
   // Подготовка данных для графика
   const chartData = useMemo(() => {
     if (!option || !option.analyticsResponse || !option.analyticsResponse.analytics || !Array.isArray(option.analyticsResponse.analytics)) {
@@ -216,8 +222,54 @@ const InvestmentDetailView = ({ option, onBack }) => {
           </div>
         )}
 
-        {option.url && (
-          <div className="detail-actions">
+        <div className="detail-actions">
+          <button
+            className="detail-save-button"
+            onClick={() => {
+              const dealId = option.url || `${option.fullAddress}-${option.price}`
+              saveDeal({
+                id: dealId,
+                ...option
+              })
+              setIsSaved(true)
+              setTimeout(() => setIsSaved(false), 2000)
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              {isSaved ? (
+                <polyline points="20 6 9 17 4 12"></polyline>
+              ) : (
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              )}
+            </svg>
+            <span>{isSaved ? 'Сохранено' : 'Сохранить сделку'}</span>
+          </button>
+
+          <button
+            className="detail-expert-button"
+            onClick={() => setShowExpertModal(true)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Обсудить с экспертом</span>
+          </button>
+
+          <button
+            className="detail-checkup-button"
+            onClick={() => setShowCheckupModal(true)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            <span>Инвест-Checkup</span>
+          </button>
+
+          {option.url && (
             <a 
               href={option.url} 
               target="_blank" 
@@ -231,7 +283,30 @@ const InvestmentDetailView = ({ option, onBack }) => {
               </svg>
               <span>Перейти к объявлению</span>
             </a>
-          </div>
+          )}
+        </div>
+
+        {showExpertModal && (
+          <ExpertModal
+            option={option}
+            onClose={() => setShowExpertModal(false)}
+            onSuccess={() => {
+              setShowExpertModal(false)
+              // TODO: Отправка лида партнеру
+            }}
+          />
+        )}
+
+        {showCheckupModal && (
+          <CheckupModal
+            option={option}
+            isPro={isPro}
+            onClose={() => setShowCheckupModal(false)}
+            onPurchase={() => {
+              setShowCheckupModal(false)
+              // TODO: Интеграция с платежной системой
+            }}
+          />
         )}
       </div>
     </div>

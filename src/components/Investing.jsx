@@ -1,9 +1,23 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getMockInvestmentOptions, getMockBestOptions } from '../data/investmentTestData'
 import InvestmentDetailView from './InvestmentDetailView'
+import MandatesList from './investing/MandatesList'
+import TradeIdeaCard from './investing/TradeIdeaCard'
+import EventsFeed from './investing/EventsFeed'
+import InvestorProfile from './investing/InvestorProfile'
 import { buildApiUrl, API_CONFIG } from '../config/api'
 import { validateInvestmentOptionsArray, getInvestmentDataStats } from '../utils/investmentDataValidator'
+import { matchesMandate, setMandateMatchCount, getMandates, getMandateMatchCount } from '../utils/mandateStorage'
 import './Investing.css'
+
+const getStrategyLabel = (strategy) => {
+  const labels = {
+    rent: 'Купить и сдавать',
+    flip: 'Флип',
+    parking: 'Парковка капитала'
+  }
+  return labels[strategy] || strategy
+}
 
 // Флаг для использования тестовых данных (для разработки)
 const USE_MOCK_DATA = false // Установите false для использования реального API
@@ -35,8 +49,11 @@ const Investing = () => {
   const [error, setError] = useState(null)
   const [investmentOptions, setInvestmentOptions] = useState([])
   const [bestOptions, setBestOptions] = useState([])
-  const [activeTab, setActiveTab] = useState('input') // 'input' или 'best'
+  const [activeTab, setActiveTab] = useState('deals') // 'deals', 'events', 'mandates', 'profile', 'input', 'best'
   const [selectedOption, setSelectedOption] = useState(null) // Выбранный вариант для детального просмотра
+  const [selectedMandate, setSelectedMandate] = useState(null) // Выбранный мандат для фильтрации сделок
+  const [isPro, setIsPro] = useState(false) // TODO: получать из профиля пользователя
+  const [mandates, setMandates] = useState([]) // Список мандатов для EventsFeed
 
   // Загрузка лучших вариантов при монтировании
   const loadBestOptions = useCallback(async () => {
@@ -69,7 +86,14 @@ const Investing = () => {
         const data = await response.json()
         
         // Валидация и нормализация данных
-        const validatedData = validateInvestmentOptionsArray(Array.isArray(data) ? data : [])
+        let validatedData = validateInvestmentOptionsArray(Array.isArray(data) ? data : [])
+        
+        // Фильтрация по выбранному мандату, если есть
+        if (selectedMandate) {
+          validatedData = validatedData.filter(option => matchesMandate(option, selectedMandate))
+          // Обновляем счетчик совпадений для мандата
+          setMandateMatchCount(selectedMandate.id, validatedData.length)
+        }
         
         if (import.meta.env.DEV) {
           console.log('Данные лучших вариантов (raw):', data)
@@ -86,11 +110,17 @@ const Investing = () => {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [selectedMandate])
 
   useEffect(() => {
     loadBestOptions()
-  }, [loadBestOptions])
+  }, [loadBestOptions, selectedMandate])
+
+  useEffect(() => {
+    // Загружаем мандаты для EventsFeed
+    const savedMandates = getMandates()
+    setMandates(savedMandates)
+  }, [])
 
   const handleSearch = useCallback(async (e) => {
     e.preventDefault()
@@ -180,24 +210,195 @@ const Investing = () => {
 
       <div className="investing-tabs">
         <button
-          className={`investing-tab ${activeTab === 'input' ? 'active' : ''}`}
-          onClick={() => setActiveTab('input')}
+          className={`investing-tab ${activeTab === 'deals' ? 'active' : ''}`}
+          onClick={() => setActiveTab('deals')}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2v20M2 12h20"></path>
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
           </svg>
-          <span>Поиск по сумме</span>
+          <span>Сделки</span>
         </button>
         <button
-          className={`investing-tab ${activeTab === 'best' ? 'active' : ''}`}
-          onClick={() => setActiveTab('best')}
+          className={`investing-tab ${activeTab === 'events' ? 'active' : ''}`}
+          onClick={() => setActiveTab('events')}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
           </svg>
-          <span>Лучшие варианты</span>
+          <span>События</span>
+        </button>
+        <button
+          className={`investing-tab ${activeTab === 'mandates' ? 'active' : ''}`}
+          onClick={() => setActiveTab('mandates')}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="3" y1="15" x2="21" y2="15"></line>
+          </svg>
+          <span>Мандаты</span>
+        </button>
+        <button
+          className={`investing-tab ${activeTab === 'profile' ? 'active' : ''}`}
+          onClick={() => setActiveTab('profile')}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Профиль</span>
         </button>
       </div>
+
+      {activeTab === 'deals' && (
+        <div className="investing-deals-section">
+          {selectedOption ? (
+            <InvestmentDetailView
+              isPro={isPro} 
+              option={selectedOption} 
+              onBack={handleBackFromDetail} 
+            />
+          ) : (
+            <>
+              {/* Список мандатов для выбора, если не выбран мандат */}
+              {!selectedMandate && mandates.length > 0 && (
+                <div className="mandates-selector-section">
+                  <h3 className="mandates-selector-title">Выберите мандат для фильтрации сделок</h3>
+                  <div className="mandates-selector-grid">
+                    {mandates.map(mandate => {
+                      const matchCount = getMandateMatchCount(mandate.id)
+                      return (
+                        <div 
+                          key={mandate.id} 
+                          className="mandate-selector-card"
+                          onClick={() => setSelectedMandate(mandate)}
+                        >
+                          <div className="mandate-selector-header">
+                            <h4>{mandate.name || getStrategyLabel(mandate.strategy)}</h4>
+                            <span className="mandate-selector-strategy">{getStrategyLabel(mandate.strategy)}</span>
+                          </div>
+                          <div className="mandate-selector-info">
+                            <span className="mandate-selector-budget">
+                              {mandate.budgetMin ? `${(mandate.budgetMin / 1000000).toFixed(1)} млн` : 'Любой'} — 
+                              {mandate.budgetMax && mandate.budgetMax !== Infinity 
+                                ? ` ${(mandate.budgetMax / 1000000).toFixed(1)} млн` 
+                                : ' без ограничений'}
+                            </span>
+                            {matchCount > 0 && (
+                              <span className="mandate-selector-count">{matchCount} объектов</span>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Фильтр по мандату */}
+              {selectedMandate && (
+                <div className="mandate-filter-banner">
+                  <div className="mandate-filter-info">
+                    <span className="mandate-filter-label">Активный фильтр:</span>
+                    <span className="mandate-filter-name">{selectedMandate.name || 'Мандат'}</span>
+                  </div>
+                  <button 
+                    className="mandate-filter-reset"
+                    onClick={() => setSelectedMandate(null)}
+                  >
+                    Сбросить фильтр
+                  </button>
+                </div>
+              )}
+
+              {/* Временная поддержка старого функционала */}
+              <div className="investing-legacy-tabs">
+                <button
+                  className={`investing-legacy-tab ${!selectedMandate ? 'active' : ''}`}
+                  onClick={() => setSelectedMandate(null)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                  </svg>
+                  <span>Лучшие варианты</span>
+                </button>
+                <button
+                  className={`investing-legacy-tab ${selectedMandate ? 'active' : ''}`}
+                  onClick={() => {
+                    // Показываем список мандатов
+                    setSelectedMandate(null)
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2v20M2 12h20"></path>
+                  </svg>
+                  <span>Поиск по сумме</span>
+                </button>
+              </div>
+
+              {loading && bestOptions.length === 0 ? (
+                <div className="investing-loading">
+                  <div className="loading-spinner"></div>
+                  <p>Загрузка сделок...</p>
+                </div>
+              ) : error && bestOptions.length === 0 ? (
+                <div className="investing-error-card">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <h3>Ошибка загрузки</h3>
+                  <p>{error}</p>
+                  <button className="retry-button" onClick={loadBestOptions}>
+                    Попробовать снова
+                  </button>
+                </div>
+              ) : (
+                <div className="investing-options-grid">
+                  {bestOptions.map((option, index) => (
+                    <TradeIdeaCard
+                      key={getOptionKey(option, index)}
+                      option={option}
+                      mandate={selectedMandate}
+                      isPro={isPro}
+                      onClick={() => setSelectedOption(option)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'events' && (
+        <div className="investing-events-section">
+          <EventsFeed isPro={isPro} mandates={mandates} />
+        </div>
+      )}
+
+      {activeTab === 'mandates' && (
+        <div className="investing-mandates-section">
+          <MandatesList 
+            isPro={isPro}
+            onSelectMandate={(mandate) => {
+              setSelectedMandate(mandate)
+              setActiveTab('deals')
+            }}
+          />
+        </div>
+      )}
+
+      {activeTab === 'profile' && (
+        <div className="investing-profile-section">
+          <InvestorProfile isPro={isPro} />
+        </div>
+      )}
 
       {activeTab === 'input' && (
         <div className="investing-input-section">
@@ -265,7 +466,8 @@ const Investing = () => {
           </div>
 
           {selectedOption ? (
-            <InvestmentDetailView 
+            <InvestmentDetailView
+              isPro={isPro} 
               option={selectedOption} 
               onBack={handleBackFromDetail} 
             />
@@ -348,7 +550,8 @@ const Investing = () => {
       {activeTab === 'best' && (
         <div className="investing-best-section">
           {selectedOption ? (
-            <InvestmentDetailView 
+            <InvestmentDetailView
+              isPro={isPro} 
               option={selectedOption} 
               onBack={handleBackFromDetail} 
             />
