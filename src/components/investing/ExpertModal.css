@@ -179,6 +179,37 @@
   cursor: not-allowed;
 }
 
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
+  .expert-modal {
+    max-width: 700px;
+  }
+
+  .expert-modal-content {
+    padding: 40px;
+  }
+
+  .expert-modal-header h3 {
+    font-size: 28px;
+  }
+
+  .expert-form-group input,
+  .expert-form-group textarea {
+    padding: 14px 18px;
+    font-size: 17px;
+  }
+
+  .expert-form-group textarea {
+    min-height: 120px;
+  }
+
+  .expert-cancel,
+  .expert-submit {
+    padding: 16px 28px;
+    font-size: 17px;
+  }
+}
+
 /* Мобильные устройства */
 @media (max-width: 480px) {
   .expert-modal {

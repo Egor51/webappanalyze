@@ -508,6 +508,63 @@
   color: var(--text-secondary);
 }
 
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
+  .investor-profile {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .profile-header h3 {
+    font-size: 32px;
+  }
+
+  .profile-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .profile-stat-value {
+    font-size: 36px;
+  }
+
+  .profile-stat-label {
+    font-size: 15px;
+  }
+
+  .saved-deals-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .saved-deal-card {
+    padding: 24px;
+    transition: all 0.3s ease;
+  }
+
+  .saved-deal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .saved-deal-header h4 {
+    font-size: 20px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .profile-stats-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 28px;
+  }
+
+  .saved-deals-list {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
 /* Мобильные устройства */
 @media (max-width: 480px) {
   .profile-header {

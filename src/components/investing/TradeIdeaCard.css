@@ -279,6 +279,51 @@
   font-weight: 700;
 }
 
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
+  .trade-idea-card {
+    padding: 24px;
+    transition: all 0.3s ease;
+  }
+
+  .trade-idea-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .trade-idea-address {
+    font-size: 20px;
+  }
+
+  .trade-idea-details {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .detail-value {
+    font-size: 18px;
+  }
+
+  .potential-item {
+    padding: 12px 16px;
+  }
+
+  .potential-label,
+  .potential-value {
+    font-size: 15px;
+  }
+
+  .trade-idea-actions {
+    gap: 12px;
+  }
+
+  .trade-idea-save-button,
+  .trade-idea-unlock-button {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+}
+
 /* Мобильные устройства */
 @media (max-width: 480px) {
   .trade-idea-card {

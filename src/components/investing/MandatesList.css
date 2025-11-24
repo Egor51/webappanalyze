@@ -289,6 +289,48 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
+  .mandates-list {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .mandates-list-header h3 {
+    font-size: 32px;
+  }
+
+  .mandates-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .mandate-card {
+    padding: 24px;
+    transition: all 0.3s ease;
+  }
+
+  .mandate-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .mandate-card-title h4 {
+    font-size: 20px;
+  }
+
+  .mandate-info-item {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .mandates-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+}
+
 /* Мобильные устройства */
 @media (max-width: 480px) {
   .mandates-list-header {

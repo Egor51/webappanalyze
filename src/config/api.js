@@ -12,7 +12,7 @@ const getBaseUrl = () => {
 
 // Конфигурация API endpoints
 export const API_CONFIG = {
-  BASE_URL: getBaseUrl(),
+  BASE_URL: 'https://murmanclick.ru',
   ENDPOINTS: {
     INVEST_TOP: '/ads/invest/top',
     INVEST_BY_BUDGET: '/ads/invest/top/by-budget',

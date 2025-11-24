@@ -52,8 +52,26 @@ const Investing = () => {
   const [activeTab, setActiveTab] = useState('deals') // 'deals', 'events', 'mandates', 'profile', 'input', 'best'
   const [selectedOption, setSelectedOption] = useState(null) // Выбранный вариант для детального просмотра
   const [selectedMandate, setSelectedMandate] = useState(null) // Выбранный мандат для фильтрации сделок
-  const [isPro, setIsPro] = useState(false) // TODO: получать из профиля пользователя
+  // Проверяем localStorage для тестирования, иначе получать из профиля пользователя
+  const [isPro, setIsPro] = useState(() => {
+    const savedProStatus = localStorage.getItem('investing_pro_status')
+    return savedProStatus === 'true' || true // Временно включен PRO для тестирования
+  })
   const [mandates, setMandates] = useState([]) // Список мандатов для EventsFeed
+
+  // Функция для переключения PRO статуса (для тестирования)
+  useEffect(() => {
+    const handleProToggle = (e) => {
+      if (e.key === 'p' && e.ctrlKey && e.shiftKey) {
+        const newProStatus = !isPro
+        setIsPro(newProStatus)
+        localStorage.setItem('investing_pro_status', newProStatus.toString())
+        console.log('PRO статус переключен:', newProStatus)
+      }
+    }
+    window.addEventListener('keydown', handleProToggle)
+    return () => window.removeEventListener('keydown', handleProToggle)
+  }, [isPro])
 
   // Загрузка лучших вариантов при монтировании
   const loadBestOptions = useCallback(async () => {

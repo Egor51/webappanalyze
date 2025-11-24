@@ -2,7 +2,7 @@
   background: var(--card-bg);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
-  padding: 20px 24px;
+  padding: 16px 24px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -16,26 +16,48 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
 }
 
+/* Логотип - улучшенный */
 .logo {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
-.logo svg {
+.logo:hover {
+  transform: translateX(2px);
+}
+
+.logo-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon {
   color: var(--accent);
   filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.logo:hover svg {
+.logo:hover .logo-icon {
   transform: scale(1.1) rotate(5deg);
+  filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4));
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .logo h1 {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   background: var(--accent-gradient);
   -webkit-background-clip: text;
@@ -43,18 +65,65 @@
   background-clip: text;
   margin: 0;
   letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
+.logo-tagline {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+/* Мини-триггер доверия */
+.header-trust-badge {
+  display: none; /* Скрыт на мобильных */
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.header-trust-badge svg {
+  width: 14px;
+  height: 14px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.header-trust-badge:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.header-trust-badge:hover svg {
+  color: white;
+}
+
+/* Навигация */
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
-.investing-nav-button,
-.evaluation-nav-button {
+/* Базовые стили для всех кнопок навигации */
+.nav-button {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 10px 16px;
   font-size: 14px;
@@ -66,10 +135,18 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  position: relative;
 }
 
-.investing-nav-button:hover,
-.evaluation-nav-button:hover {
+.nav-button svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.nav-button:hover {
   background: var(--accent);
   color: white;
   border-color: var(--accent);
@@ -77,72 +154,336 @@
   box-shadow: var(--shadow);
 }
 
-.investing-nav-button:active,
-.evaluation-nav-button:active {
+.nav-button:hover svg {
+  transform: scale(1.1);
+}
+
+.nav-button.active {
+  background: var(--accent-gradient);
+  color: white;
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.nav-button:active {
   transform: translateY(0) scale(0.95);
+  transition: transform 0.1s ease;
 }
 
-.investing-nav-button svg,
-.evaluation-nav-button svg {
-  flex-shrink: 0;
+/* Выделенная кнопка "Инвестиции" */
+.investing-nav-button.featured {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border: 1.5px solid var(--accent);
+  position: relative;
 }
 
+.investing-nav-button.featured:hover {
+  background: var(--accent-gradient);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.investing-nav-button.featured.active {
+  background: var(--accent-gradient);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.5);
+}
+
+.nav-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* CTA кнопка "Срочная покупка" */
+.urgent-buy-nav-button.cta {
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  border: none;
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.urgent-buy-nav-button.cta:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.5);
+}
+
+.urgent-buy-nav-button.cta.active {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.6);
+}
+
+.urgent-buy-nav-button.cta:active {
+  transform: translateY(-1px) scale(0.95);
+}
+
+/* Переключатель тем - улучшенный */
 .theme-toggle {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   cursor: pointer;
-  padding: 10px;
+  padding: 0;
   border-radius: 12px;
   color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   width: 44px;
   height: 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle-inner {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.theme-icon {
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .theme-toggle:hover {
   background: var(--accent);
   color: white;
   border-color: var(--accent);
-  transform: translateY(-2px);
+  transform: translateY(-2px) rotate(15deg);
   box-shadow: var(--shadow);
 }
 
+.theme-toggle:hover .theme-icon {
+  transform: scale(1.1) rotate(-15deg);
+}
+
 .theme-toggle:active {
-  transform: translateY(0) scale(0.95);
+  transform: translateY(0) scale(0.92) rotate(0deg);
+  transition: transform 0.1s ease;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.theme-toggle:active .theme-icon {
+  transform: scale(0.9);
 }
 
-@media (max-width: 480px) {
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
   .header {
-    padding: 16px 20px;
+    padding: 20px 40px;
   }
-  
+
+  .header-content {
+    max-width: 1000px;
+    gap: 24px;
+  }
+
   .logo h1 {
-    font-size: 20px;
+    font-size: 26px;
   }
-  
-  .logo {
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logo-tagline {
+    font-size: 12px;
+  }
+
+  .header-trust-badge {
+    display: flex; /* Показываем на десктопе */
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+
+  .header-trust-badge svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .header-actions {
     gap: 12px;
   }
 
-  .investing-nav-button span,
-  .evaluation-nav-button span {
-    display: none;
+  .nav-button {
+    padding: 12px 20px;
+    font-size: 15px;
+    gap: 10px;
   }
 
-  .investing-nav-button,
-  .evaluation-nav-button {
-    padding: 10px;
-    width: 44px;
-    height: 44px;
+  .nav-button svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .theme-toggle {
+    width: 48px;
+    height: 48px;
+  }
+
+  .theme-icon {
+    width: 22px;
+    height: 22px;
   }
 }
 
+@media (min-width: 1440px) {
+  .header-content {
+    max-width: 1100px;
+  }
+}
+
+/* Мобильная оптимизация */
+@media (max-width: 768px) {
+  .header {
+    padding: 14px 16px;
+  }
+
+  .header-content {
+    gap: 8px;
+  }
+
+  .logo {
+    gap: 10px;
+  }
+
+  .logo h1 {
+    font-size: 18px;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .logo-tagline {
+    display: none; /* Скрываем на мобильных */
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .nav-button span {
+    display: none; /* Только иконки на мобильных */
+  }
+
+  .nav-button {
+    padding: 0;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 10px;
+    gap: 0;
+  }
+
+  .nav-button svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .nav-badge {
+    top: -4px;
+    right: -4px;
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+
+  .theme-toggle {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 10px;
+  }
+
+  .theme-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Очень маленькие экраны */
+@media (max-width: 480px) {
+  .header {
+    padding: 12px 14px;
+  }
+
+  .header-content {
+    gap: 6px;
+  }
+
+  .logo h1 {
+    font-size: 16px;
+  }
+
+  .logo-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  .nav-button,
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 8px;
+  }
+
+  .nav-button svg,
+  .theme-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .nav-badge {
+    top: -3px;
+    right: -3px;
+    font-size: 7px;
+    padding: 1px 3px;
+  }
+}
+
+/* Анимации */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.urgent-buy-nav-button.cta:not(.active):hover {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Улучшенная анимация для активного состояния */
+.nav-button.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+  pointer-events: none;
+}

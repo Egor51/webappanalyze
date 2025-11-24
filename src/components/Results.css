@@ -17,7 +17,7 @@
 }
 
 .results-header {
-  margin-bottom: 12px;
+  margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -146,6 +146,8 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .result-card::before {
@@ -599,6 +601,144 @@
   text-align: center;
   padding: 60px 20px;
   color: var(--text-secondary);
+}
+
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
+  .results {
+    gap: 24px;
+    width: 100%;
+  }
+
+  .results-header {
+    margin-bottom: 16px;
+  }
+
+  .results-header h2 {
+    font-size: 32px;
+  }
+
+  .results-header-actions {
+    gap: 12px;
+  }
+
+  .result-card {
+    padding: 28px;
+    width: 100%;
+  }
+
+  .price-card {
+    padding: 28px;
+  }
+
+  .price-value {
+    font-size: 40px;
+  }
+
+  .price-item-value {
+    font-size: 17px;
+  }
+
+  .price-item-label {
+    font-size: 14px;
+  }
+
+  .price-range {
+    gap: 20px;
+  }
+
+  /* Для карточки "Изменение цены" оставляем 2 колонки, так как там только 2 элемента */
+  .stats-card {
+    padding: 28px;
+  }
+
+  .stats-card .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    max-width: 100%;
+  }
+
+  .stat-value {
+    font-size: 26px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+  }
+
+  .chart-container {
+    height: 380px;
+  }
+
+  .chart-card {
+    padding: 28px;
+  }
+
+  .card-header {
+    margin-bottom: 20px;
+  }
+
+  .card-header h3 {
+    font-size: 19px;
+  }
+
+  .share-button,
+  .new-search-button {
+    padding: 12px 20px;
+    font-size: 15px;
+    height: auto;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .address-text {
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  .address-card {
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .results {
+    gap: 28px;
+  }
+
+  .result-card {
+    padding: 32px;
+  }
+
+  .price-card {
+    padding: 32px;
+  }
+
+  .stats-card {
+    padding: 32px;
+  }
+
+  .price-value {
+    font-size: 44px;
+  }
+
+  .stats-card .stats-grid {
+    gap: 32px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+
+  .chart-container {
+    height: 420px;
+  }
+
+  .chart-card {
+    padding: 32px;
+  }
 }
 
 @media (max-width: 480px) {

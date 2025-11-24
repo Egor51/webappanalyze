@@ -271,6 +271,51 @@
   flex-shrink: 0;
 }
 
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
+  .checkup-modal {
+    max-width: 800px;
+  }
+
+  .checkup-modal-content {
+    padding: 40px;
+  }
+
+  .checkup-modal-header h3 {
+    font-size: 28px;
+  }
+
+  .checkup-types {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .checkup-type-card {
+    padding: 24px;
+  }
+
+  .checkup-type-header h4 {
+    font-size: 20px;
+  }
+
+  .checkup-type-price {
+    font-size: 24px;
+  }
+
+  .checkup-cancel,
+  .checkup-purchase {
+    padding: 16px 28px;
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .checkup-types {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 /* Мобильные устройства */
 @media (max-width: 480px) {
   .checkup-modal {

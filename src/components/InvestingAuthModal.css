@@ -232,6 +232,41 @@
   background: rgba(0, 0, 0, 0.8);
 }
 
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
+  .investing-auth-modal {
+    max-width: 600px;
+  }
+
+  .investing-auth-modal-content {
+    padding: 48px 40px;
+  }
+
+  .investing-auth-modal-title {
+    font-size: 28px;
+  }
+
+  .investing-auth-modal-description {
+    font-size: 16px;
+  }
+
+  .investing-auth-modal-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 24px;
+  }
+
+  .investing-auth-modal-input {
+    padding: 16px 20px;
+    font-size: 18px;
+  }
+
+  .investing-auth-modal-join-button {
+    padding: 16px 24px;
+    font-size: 17px;
+  }
+}
+
 /* Мобильные устройства */
 @media (max-width: 480px) {
   .investing-auth-modal {

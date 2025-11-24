@@ -228,6 +228,49 @@
   font-weight: 700;
 }
 
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
+  .events-feed {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .events-feed-header h3 {
+    font-size: 28px;
+  }
+
+  .events-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .event-item {
+    padding: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .event-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .event-title {
+    font-size: 18px;
+  }
+
+  .event-description {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .events-list {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
 /* Мобильные устройства */
 @media (max-width: 480px) {
   .events-feed-header {

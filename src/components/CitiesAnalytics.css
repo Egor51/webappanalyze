@@ -419,6 +419,69 @@
   }
 }
 
+/* Десктоп оптимизация */
+@media (min-width: 1024px) {
+  .cities-analytics {
+    gap: 32px;
+  }
+
+  .cities-analytics-header h2 {
+    font-size: 36px;
+  }
+
+  .cities-cards-container {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .city-card {
+    padding: 24px;
+    transition: all 0.3s ease;
+  }
+
+  .city-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .city-card-name {
+    font-size: 20px;
+  }
+
+  .city-stat-value {
+    font-size: 22px;
+  }
+
+  .cities-sort-controls {
+    gap: 16px;
+  }
+
+  .sort-select {
+    padding: 10px 16px;
+    font-size: 15px;
+  }
+
+  .pagination {
+    gap: 12px;
+  }
+
+  .pagination-button {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .cities-cards-container {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+  }
+
+  .cities-analytics-header h2 {
+    font-size: 42px;
+  }
+}
+
 @media (max-width: 480px) {
   .cities-analytics-header h2 {
     font-size: 20px;

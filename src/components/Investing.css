@@ -1433,3 +1433,153 @@
     justify-content: center;
   }
 }
+
+/* ============================================
+   ДЕСКТОП ОПТИМИЗАЦИЯ (min-width: 1024px)
+   ============================================ */
+
+@media (min-width: 1024px) {
+  .investing-screen {
+    max-width: 1400px;
+    padding: 32px 40px;
+  }
+
+  .investing-title-section {
+    margin-bottom: 32px;
+  }
+
+  .investing-title-section h2 {
+    font-size: 36px;
+  }
+
+  .investing-tabs {
+    margin-bottom: 40px;
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .investing-tab {
+    padding: 14px 24px;
+    font-size: 16px;
+    gap: 10px;
+  }
+
+  .investing-tab svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Сетки для карточек объектов */
+  .investing-options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .best-options-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .best-option-card {
+    padding: 24px;
+  }
+
+  .best-option-address {
+    font-size: 18px;
+  }
+
+  /* Детальный просмотр */
+  .investment-detail-view {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .detail-card {
+    padding: 32px;
+  }
+
+  .detail-header h2 {
+    font-size: 28px;
+  }
+
+  .detail-basic-info {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .detail-chart {
+    padding: 24px;
+  }
+
+  /* Мандаты */
+  .mandates-selector-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .mandate-selector-card {
+    padding: 20px;
+  }
+
+  /* Формы */
+  .investing-card {
+    padding: 32px;
+  }
+
+  .investing-form {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .investing-input-section {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1440px) {
+  .investing-screen {
+    padding: 40px 60px;
+  }
+
+  .investing-title-section h2 {
+    font-size: 42px;
+  }
+
+  /* Еще более широкие сетки для больших экранов */
+  .investing-options-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .best-options-list {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .mandates-selector-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .detail-basic-info {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+  }
+
+  .investment-detail-view {
+    max-width: 1100px;
+  }
+}

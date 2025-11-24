@@ -10,6 +10,7 @@ import AllCitiesBlock from './components/AllCitiesBlock'
 import CitiesAnalytics from './components/CitiesAnalytics'
 import Investing from './components/Investing'
 import InvestingAuthModal from './components/InvestingAuthModal'
+import UrgentBuyPage from './components/UrgentBuyPage'
 import { saveSearchToHistory } from './utils/searchHistory'
 import { isInvestingAuthorized } from './utils/investingAuth'
 import { getApiBaseUrl } from './config/api'
@@ -27,14 +28,96 @@ function App() {
   const [citiesData, setCitiesData] = useState(null)
   const [citiesLoading, setCitiesLoading] = useState(false)
   const [citiesError, setCitiesError] = useState(null)
-  const [currentScreen, setCurrentScreen] = useState('search') // 'search' или 'investing'
+  const [currentScreen, setCurrentScreen] = useState('search') // 'search', 'investing' или 'urgent-buy'
   const [isInvestingAuthModalOpen, setIsInvestingAuthModalOpen] = useState(false)
   const [investingAuthStatus, setInvestingAuthStatus] = useState(false)
+
+  // Функция для определения экрана по пути
+  const getScreenFromPath = (pathname) => {
+    // Убираем base path если есть
+    const basePath = '/webappanalyze'
+    let cleanPath = pathname
+    
+    // Обрабатываем base path
+    if (pathname.startsWith(basePath)) {
+      cleanPath = pathname.slice(basePath.length) || '/'
+    }
+    
+    // Также обрабатываем случай без base path (для dev режима)
+    if (!cleanPath || cleanPath === '/') {
+      // Проверяем, может быть путь уже без base path
+      cleanPath = pathname
+    }
+    
+    // Убираем trailing slash
+    if (cleanPath.endsWith('/') && cleanPath.length > 1) {
+      cleanPath = cleanPath.slice(0, -1)
+    }
+    
+    if (cleanPath === '/investicii' || cleanPath.startsWith('/investicii')) {
+      return 'investing'
+    }
+    if (cleanPath === '/srochnaya-pokupka' || cleanPath.startsWith('/srochnaya-pokupka')) {
+      return 'urgent-buy'
+    }
+    // По умолчанию или для /analyse, / - экран поиска
+    return 'search'
+  }
+
+  // Функция для получения пути по экрану
+  const getPathFromScreen = (screen) => {
+    const basePath = '/webappanalyze'
+    let path = ''
+    switch (screen) {
+      case 'investing':
+        path = '/investicii'
+        break
+      case 'urgent-buy':
+        path = '/srochnaya-pokupka'
+        break
+      case 'search':
+      default:
+        path = '/analyse'
+    }
+    return basePath + path
+  }
 
   useEffect(() => {
     // Проверяем авторизацию для раздела инвестиций
     const authorized = isInvestingAuthorized()
     setInvestingAuthStatus(authorized)
+
+    // Определяем экран по текущему пути
+    const pathname = window.location.pathname
+    const screen = getScreenFromPath(pathname)
+    
+    // Устанавливаем экран
+    setCurrentScreen(screen)
+    
+    // Если путь корневой, перенаправляем на /analyse
+    const basePath = '/webappanalyze'
+    let cleanPath = pathname
+    if (pathname.startsWith(basePath)) {
+      cleanPath = pathname.slice(basePath.length) || '/'
+    }
+    
+    if (cleanPath === '/' || cleanPath === '') {
+      const searchPath = getPathFromScreen('search')
+      window.history.replaceState({ screen: 'search' }, '', searchPath)
+      setCurrentScreen('search')
+    }
+
+    // Обработчик навигации назад/вперед
+    const handlePopState = (event) => {
+      const newPathname = window.location.pathname
+      const newScreen = getScreenFromPath(newPathname)
+      setCurrentScreen(newScreen)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
   }, [])
 
   useEffect(() => {
@@ -448,6 +531,8 @@ function App() {
     // Проверяем авторизацию перед переходом
     const authorized = isInvestingAuthorized()
     if (authorized) {
+      const path = getPathFromScreen('investing')
+      window.history.pushState({ screen: 'investing' }, '', path)
       setCurrentScreen('investing')
       setData(null)
       setError(null)
@@ -461,6 +546,8 @@ function App() {
 
   const handleInvestingAuthSuccess = () => {
     setInvestingAuthStatus(true)
+    const path = getPathFromScreen('investing')
+    window.history.pushState({ screen: 'investing' }, '', path)
     setCurrentScreen('investing')
     setData(null)
     setError(null)
@@ -473,7 +560,33 @@ function App() {
   }
 
   const handleBackFromInvesting = () => {
+    const path = getPathFromScreen('search')
+    window.history.pushState({ screen: 'search' }, '', path)
     setCurrentScreen('search')
+    setData(null)
+    setError(null)
+    setCitiesData(null)
+    setCitiesError(null)
+  }
+
+  const handleNavigateToSearch = () => {
+    const path = getPathFromScreen('search')
+    window.history.pushState({ screen: 'search' }, '', path)
+    setCurrentScreen('search')
+    setData(null)
+    setError(null)
+    setCitiesData(null)
+    setCitiesError(null)
+  }
+
+  const handleNavigateToUrgentBuy = () => {
+    const path = getPathFromScreen('urgent-buy')
+    window.history.pushState({ screen: 'urgent-buy' }, '', path)
+    setCurrentScreen('urgent-buy')
+    setData(null)
+    setError(null)
+    setCitiesData(null)
+    setCitiesError(null)
   }
 
   // Показываем начальный лоадер
@@ -493,7 +606,8 @@ function App() {
         <Header 
           currentScreen={currentScreen}
           onNavigateToInvesting={handleNavigateToInvesting}
-          onNavigateToSearch={handleBackFromInvesting}
+          onNavigateToSearch={handleNavigateToSearch}
+          onNavigateToUrgentBuy={handleNavigateToUrgentBuy}
         />
         <main className="main-content">
           <InvestingAuthModal
@@ -503,6 +617,11 @@ function App() {
           />
           {currentScreen === 'investing' ? (
             <Investing />
+          ) : currentScreen === 'urgent-buy' ? (
+            <UrgentBuyPage 
+              onNavigateToSearch={handleNavigateToSearch}
+              onNavigateToInvesting={handleNavigateToInvesting}
+            />
           ) : (
           <>
           <SearchForm 
@@ -578,4 +697,5 @@ function App() {
 }
 
 export default App
+
 
