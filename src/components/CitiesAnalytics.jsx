@@ -1,22 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo, useMemo } from 'react'
+import { formatPrice, formatPercent } from '../utils/formatters'
 import './CitiesAnalytics.css'
 
-const formatPrice = (price) => {
-  if (!price || price === 'no content') {
-    return 'Нет данных'
-  }
-  return price
-}
-
-const formatPercent = (percent) => {
-  if (percent === 0 || percent === null || percent === undefined) {
-    return '0%'
-  }
-  const sign = percent > 0 ? '+' : ''
-  return `${sign}${percent.toFixed(2)}%`
-}
-
-const formatDate = (dateArray) => {
+// Специальная функция форматирования даты для массива [year, month, day]
+const formatDateArray = (dateArray) => {
   if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) {
     return 'Нет данных'
   }
@@ -29,7 +16,7 @@ const formatDate = (dateArray) => {
   })
 }
 
-const CitiesAnalytics = ({ data, onBack }) => {
+const CitiesAnalytics = memo(({ data, onBack }) => {
   const [sortField, setSortField] = useState('city')
   const [sortDirection, setSortDirection] = useState('asc')
   const [currentPage, setCurrentPage] = useState(0)
@@ -69,44 +56,55 @@ const CitiesAnalytics = ({ data, onBack }) => {
 
   const cities = data.content
 
-  // Сортировка городов
-  const sortedCities = [...cities].sort((a, b) => {
-    let aValue, bValue
+  // Мемоизированная сортировка городов
+  const sortedCities = useMemo(() => {
+    return [...cities].sort((a, b) => {
+      let aValue, bValue
 
-    switch (sortField) {
-      case 'city':
-        aValue = a.city || ''
-        bValue = b.city || ''
-        break
-      case 'price':
-        // Извлекаем числовое значение из строки "5,6 млн" или "no content"
-        aValue = a.price === 'no content' ? 0 : parseFloat(a.price?.replace(/[^\d,]/g, '').replace(',', '.')) || 0
-        bValue = b.price === 'no content' ? 0 : parseFloat(b.price?.replace(/[^\d,]/g, '').replace(',', '.')) || 0
-        break
-      case 'priceMeter':
-        // Извлекаем числовое значение из строки "110 598" или "no content"
-        aValue = a.priceMeter === 'no content' ? 0 : parseFloat(a.priceMeter?.replace(/\s/g, '')) || 0
-        bValue = b.priceMeter === 'no content' ? 0 : parseFloat(b.priceMeter?.replace(/\s/g, '')) || 0
-        break
-      case 'annualChange':
-        aValue = a.annualPriceChangePercent || 0
-        bValue = b.annualPriceChangePercent || 0
-        break
-      case 'threeMonthChange':
-        aValue = a.threeMonthPriceChangePercent || 0
-        bValue = b.threeMonthPriceChangePercent || 0
-        break
-      default:
-        aValue = a.city || ''
-        bValue = b.city || ''
-    }
+      switch (sortField) {
+        case 'city':
+          aValue = a.city || ''
+          bValue = b.city || ''
+          break
+        case 'price':
+          // Извлекаем числовое значение из строки "5,6 млн" или "no content"
+          aValue = a.price === 'no content' ? 0 : parseFloat(a.price?.replace(/[^\d,]/g, '').replace(',', '.')) || 0
+          bValue = b.price === 'no content' ? 0 : parseFloat(b.price?.replace(/[^\d,]/g, '').replace(',', '.')) || 0
+          break
+        case 'priceMeter':
+          // Извлекаем числовое значение из строки "110 598" или "no content"
+          aValue = a.priceMeter === 'no content' ? 0 : parseFloat(a.priceMeter?.replace(/\s/g, '')) || 0
+          bValue = b.priceMeter === 'no content' ? 0 : parseFloat(b.priceMeter?.replace(/\s/g, '')) || 0
+          break
+        case 'annualChange':
+          aValue = a.annualPriceChangePercent || 0
+          bValue = b.annualPriceChangePercent || 0
+          break
+        case 'threeMonthChange':
+          aValue = a.threeMonthPriceChangePercent || 0
+          bValue = b.threeMonthPriceChangePercent || 0
+          break
+        default:
+          aValue = a.city || ''
+          bValue = b.city || ''
+      }
 
-    if (sortDirection === 'asc') {
-      return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
-    } else {
-      return aValue < bValue ? 1 : aValue > bValue ? -1 : 0
-    }
-  })
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0
+      }
+    })
+  }, [cities, sortField, sortDirection])
+
+  // Мемоизированная пагинация
+  const { paginatedCities, totalPages } = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const paginated = sortedCities.slice(startIndex, endIndex)
+    const total = Math.ceil(sortedCities.length / itemsPerPage)
+    return { paginatedCities: paginated, totalPages: total }
+  }, [sortedCities, currentPage, itemsPerPage])
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -140,22 +138,19 @@ const CitiesAnalytics = ({ data, onBack }) => {
   }
 
 
-  // Пагинация
-  const totalPages = Math.ceil(sortedCities.length / itemsPerPage)
-  const startIndex = currentPage * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentCities = sortedCities.slice(startIndex, endIndex)
+  // Используем мемоизированную пагинацию
+  const currentCities = paginatedCities
 
   const handlePrevPage = () => {
     if (currentPage > 0) {
-      setCurrentPage(currentPage - 1)
+      setCurrentPage(prev => prev - 1)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   const handleNextPage = () => {
     if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1)
+      setCurrentPage(prev => prev + 1)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
@@ -251,7 +246,7 @@ const CitiesAnalytics = ({ data, onBack }) => {
                   </div>
                   
                   <div className="city-card-footer">
-                    <span className="city-date">Обновлено: {formatDate(city.created)}</span>
+                    <span className="city-date">Обновлено: {formatDateArray(city.created)}</span>
                   </div>
                 </>
               ) : (
@@ -301,7 +296,9 @@ const CitiesAnalytics = ({ data, onBack }) => {
       )}
     </div>
   )
-}
+})
+
+CitiesAnalytics.displayName = 'CitiesAnalytics'
 
 export default CitiesAnalytics
 

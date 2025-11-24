@@ -1,27 +1,13 @@
-import { useMemo, useState, useEffect, useRef } from 'react'
+import { useMemo, useState, useEffect, useRef, memo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import PriceForecast from './PriceForecast'
 import { getMLForecast, formatForecastForChart } from '../utils/forecastML'
+import { formatPrice, formatDate } from '../utils/formatters'
 import './Results.css'
 
-const formatPrice = (price) => {
-  if (typeof price === 'number') {
-    if (price >= 1000000) {
-      return `${(price / 1000000).toFixed(1)} млн`
-    }
-    return `${Math.round(price).toLocaleString('ru-RU')} ₽`
-  }
-  return price
-}
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' })
-}
-
-const Results = ({ data, onNewSearch }) => {
+const Results = memo(({ data, onNewSearch }) => {
   const [shareSuccess, setShareSuccess] = useState(false)
   const [chartExpanded, setChartExpanded] = useState(false)
   const [showMinTooltip, setShowMinTooltip] = useState(false)
@@ -1063,7 +1049,9 @@ const Results = ({ data, onNewSearch }) => {
       )}
     </div>
   )
-}
+})
+
+Results.displayName = 'Results'
 
 export default Results
 

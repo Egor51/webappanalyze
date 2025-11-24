@@ -1,14 +1,10 @@
-// Определение базового URL в зависимости от окружения
-const getBaseUrl = () => {
-  // В режиме разработки используем localhost
-  if (import.meta.env.DEV) {
-    const devUrl = 'http://localhost:8081'
-    console.log('[API Config] Development mode: using', devUrl)
-    return devUrl
-  }
-  // В продакшене используем production URL
-  return 'https://murmanclick.ru'
-}
+/**
+ * Конфигурация API endpoints
+ * Используется для совместимости со старым кодом
+ * Рекомендуется использовать apiClient из '../api/client'
+ */
+
+import { getApiBaseUrl as getBaseUrl } from '../api/client'
 
 // Конфигурация API endpoints
 export const API_CONFIG = {
@@ -23,12 +19,13 @@ export const API_CONFIG = {
   }
 }
 
-// Экспортируем функцию для получения базового URL (для использования в других местах)
-export const getApiBaseUrl = () => API_CONFIG.BASE_URL
+// Экспортируем функцию для получения базового URL (для обратной совместимости)
+export const getApiBaseUrl = getBaseUrl
 
-// Функция для построения URL
+// Функция для построения URL (для обратной совместимости)
 export const buildApiUrl = (endpoint, params = {}) => {
-  const url = new URL(`${API_CONFIG.BASE_URL}${endpoint}`)
+  const baseUrl = getBaseUrl()
+  const url = new URL(`${baseUrl}${endpoint}`)
   Object.entries(params).forEach(([key, value]) => {
     if (value != null && value !== '') {
       url.searchParams.append(key, value)

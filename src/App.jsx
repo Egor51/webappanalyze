@@ -1,20 +1,23 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react'
 import { ThemeProvider } from './context/ThemeContext'
 import Header from './components/Header'
 import SearchForm from './components/SearchForm'
 import SearchHistory from './components/SearchHistory'
-import Results from './components/Results'
 import Loader from './components/Loader'
 import Instructions from './components/Instructions'
 import AllCitiesBlock from './components/AllCitiesBlock'
-import CitiesAnalytics from './components/CitiesAnalytics'
-import Investing from './components/Investing'
 import InvestingAuthModal from './components/InvestingAuthModal'
-import UrgentBuyPage from './components/UrgentBuyPage'
 import { saveSearchToHistory } from './utils/searchHistory'
 import { isInvestingAuthorized } from './utils/investingAuth'
-import { getApiBaseUrl } from './config/api'
+import { apiClient } from './api/client'
+import { normalizeAddress } from './utils/formatters'
 import './App.css'
+
+// Lazy loading для тяжелых компонентов
+const Results = lazy(() => import('./components/Results'))
+const CitiesAnalytics = lazy(() => import('./components/CitiesAnalytics'))
+const Investing = lazy(() => import('./components/Investing'))
+const UrgentBuyPage = lazy(() => import('./components/UrgentBuyPage'))
 
 function App() {
   const [data, setData] = useState(null)
@@ -179,7 +182,8 @@ function App() {
     initApp()
   }, [])
 
-  const handleSearch = async (address, countRoom, searchType = 'address', propertyType = 'all') => {
+  // Оптимизированная функция поиска с использованием API-клиента
+  const handleSearch = useCallback(async (address, countRoom, searchType = 'address', propertyType = 'all') => {
     setLoading(true)
     setError(null)
     setData(null)
@@ -189,199 +193,45 @@ function App() {
     const originalAddress = address.trim()
 
     try {
-      const baseUrl = getApiBaseUrl()
-      let apiUrl = ''
-      
       // Проверяем, нужно ли добавлять параметр countRoom
       const shouldIncludeCountRoom = countRoom !== 'Весь' && countRoom !== 'Весь район' && countRoom !== 'Весь город'
       
       // Преобразуем propertyType в houseMaterial
       const houseMaterialValue = propertyType === 'new' ? 'Новостройка' : propertyType === 'secondary' ? 'Вторичка' : null
       
+      let data
+      
       if (searchType === 'city') {
-        // Запрос по городу: https://murmanclick.ru/ads/analytic/city?city=Мурманск&countRoom=2&houseMaterial=Новостройка
-        const params = new URLSearchParams()
-        params.append('city', originalAddress)
-        
-        if (shouldIncludeCountRoom) {
-          params.append('countRoom', countRoom)
+        const params = {
+          city: originalAddress,
+          ...(shouldIncludeCountRoom && { countRoom }),
+          ...(houseMaterialValue && { houseMaterial: houseMaterialValue }),
         }
-        
-        if (houseMaterialValue) {
-          params.append('houseMaterial', houseMaterialValue)
-        }
-        
-        apiUrl = `${baseUrl}/ads/analytic/city?${params.toString()}`
+        data = await apiClient.get('/ads/analytic/city', params)
       } else if (searchType === 'district') {
-        // Запрос по району: https://murmanclick.ru/ads/analytic/district?district=Ленинский&countRoom=2&houseMaterial=Новостройка
-        const params = new URLSearchParams()
-        params.append('district', originalAddress)
-        
-        if (shouldIncludeCountRoom) {
-          params.append('countRoom', countRoom)
+        const params = {
+          district: originalAddress,
+          ...(shouldIncludeCountRoom && { countRoom }),
+          ...(houseMaterialValue && { houseMaterial: houseMaterialValue }),
         }
-        
-        if (houseMaterialValue) {
-          params.append('houseMaterial', houseMaterialValue)
-        }
-        
-        apiUrl = `${baseUrl}/ads/analytic/district?${params.toString()}`
+        data = await apiClient.get('/ads/analytic/district', params)
       } else {
-        // Запрос по адресу (старый формат)
-        // Формируем адрес: если не указан город, добавляем "Мурманск"
-        // НО: если адрес уже содержит название другого города (Оленегорск, Апатиты и т.д.), не добавляем Мурманск
-        let fullAddress = originalAddress
-        const addressLower = fullAddress.toLowerCase()
-        
-        // Список городов Мурманской области (кроме Мурманска)
-        const otherCities = ['оленегорск', 'апатиты', 'кировск', 'мончегорск', 'полярные зори', 
-                           'полярный', 'североморск', 'заозерск', 'гаджиево', 'снежногорск',
-                           'кандалакша', 'кола', 'порья губа', 'заполярный', 'печенга']
-        
-        // Проверяем, содержит ли адрес название другого города
-        const hasOtherCity = otherCities.some(city => addressLower.includes(city))
-        const hasMurmansk = addressLower.includes('мурманск')
-        
-        // Добавляем "Мурманск" только если нет ни Мурманска, ни другого города
-        if (!hasMurmansk && !hasOtherCity) {
-          fullAddress = `Мурманск ${fullAddress}`
+        // Запрос по адресу
+        const fullAddress = normalizeAddress(originalAddress)
+        const params = {
+          street: fullAddress,
+          countRoom,
         }
-        
-        // Если в адресе нет "д" или "дом", добавляем "д"
-        if (!fullAddress.match(/\s(д|дом)\s/i)) {
-          // Ищем номер дома в конце адреса
-          const houseMatch = fullAddress.match(/\s(\d+)$/)
-          if (houseMatch) {
-            fullAddress = fullAddress.replace(/\s(\d+)$/, ' д $1')
-          }
-        }
-        
-        apiUrl = `${baseUrl}/ads/analytic/v1.1?street=${encodeURIComponent(fullAddress)}&countRoom=${encodeURIComponent(countRoom)}`
+        data = await apiClient.get('/ads/analytic/v1.1', params)
       }
       
-      // Логирование для отладки
-      console.log('Запрос к API:', apiUrl)
-      
-      let response
-      try {
-        // Пробуем сделать запрос
-        response = await fetch(apiUrl, {
-          method: 'GET',
-          mode: 'cors',
-          cache: 'no-cache',
-          credentials: 'omit',
-          headers: {
-            'Accept': 'application/json',
-          },
-        })
-      } catch (fetchError) {
-        // Обработка ошибок сети и SSL
-        console.error('Fetch error details:', {
-          name: fetchError.name,
-          message: fetchError.message,
-          stack: fetchError.stack,
-          apiUrl: apiUrl
-        })
-        
-        // Проверяем, доступен ли сервер через другой метод
-        // Chrome может блокировать из-за SSL/CORS
-        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)
-        const errorMessage = fetchError.message || ''
-        const errorName = fetchError.name || ''
-        const errorStack = fetchError.stack || ''
-        const fullErrorText = `${errorMessage} ${errorStack}`.toUpperCase()
-        
-        if (isChrome) {
-          console.warn('Chrome detected - возможна проблема с CORS или SSL сертификатом')
-        }
-        
-        // Специальная обработка для отозванного сертификата (проверяем в сообщении и стеке)
-        if (fullErrorText.includes('ERR_CERT_REVOKED') || 
-            fullErrorText.includes('CERT_REVOKED') ||
-            errorMessage.includes('ERR_CERT_REVOKED') ||
-            errorStack.includes('ERR_CERT_REVOKED')) {
-          // Chrome более строго проверяет сертификаты, Safari может работать
-          if (isChrome) {
-            throw new Error('Chrome блокирует подключение из-за проверки сертификата. Пожалуйста, используйте Safari или другой браузер. Проблема связана со строгой проверкой сертификатов в Chrome.')
-          } else {
-            throw new Error('Сертификат безопасности сервера был отозван. Это проблема на стороне сервера murmanclick.ru. Пожалуйста, обратитесь к администратору сервера для исправления сертификата.')
-          }
-        }
-        
-        // Проверка на SSL/CERT ошибки (более расширенная)
-        const isSSLError = errorMessage.includes('CERT') || 
-                          errorMessage.includes('certificate') ||
-                          errorMessage.includes('ERR_CERT') ||
-                          errorMessage.includes('ERR_SSL') ||
-                          errorMessage.includes('SSL') ||
-                          errorMessage.includes('TLS') ||
-                          errorMessage.includes('certificate has expired') ||
-                          errorMessage.includes('certificate is invalid') ||
-                          errorMessage.includes('certificate is not trusted') ||
-                          errorMessage.includes('ERR_CERT_AUTHORITY_INVALID') ||
-                          errorMessage.includes('ERR_CERT_COMMON_NAME_INVALID') ||
-                          errorStack.includes('ERR_CERT') ||
-                          errorStack.includes('ERR_SSL')
-        
-        if (isSSLError) {
-          // Chrome более строго проверяет сертификаты через OCSP
-          if (isChrome) {
-            throw new Error('Chrome блокирует подключение из-за проверки сертификата. Пожалуйста, используйте Safari или другой браузер. Chrome использует более строгую проверку сертификатов через OCSP.')
-          } else {
-            throw new Error('Проблема с сертификатом безопасности сервера. Пожалуйста, попробуйте позже или обратитесь к администратору.')
-          }
-        }
-        
-        // Обработка различных типов сетевых ошибок
-        const isNetworkError = errorName === 'TypeError' ||
-                              errorName === 'NetworkError' ||
-                              errorMessage.includes('Failed to fetch') ||
-                              errorMessage.includes('NetworkError') ||
-                              errorMessage.includes('Network request failed') ||
-                              errorMessage.includes('ERR_INTERNET_DISCONNECTED') ||
-                              errorMessage.includes('ERR_NETWORK_CHANGED') ||
-                              errorMessage.includes('ERR_CONNECTION_REFUSED') ||
-                              errorMessage.includes('ERR_CONNECTION_RESET') ||
-                              errorMessage.includes('ERR_CONNECTION_TIMED_OUT') ||
-                              errorMessage.includes('ERR_NAME_NOT_RESOLVED')
-        
-        if (isNetworkError) {
-          // В Chrome "Failed to fetch" может означать разные проблемы
-          // Проверяем, есть ли реальное подключение к интернету
-          if (navigator.onLine === false) {
-            throw new Error('Нет подключения к интернету. Проверьте ваше соединение.')
-          }
-          
-          // Если есть интернет, но запрос не проходит, это может быть CORS или SSL
-          // В Chrome "Failed to fetch" часто означает SSL или CORS проблему
-          if (isChrome && errorMessage.includes('Failed to fetch')) {
-            throw new Error('Chrome блокирует подключение. Возможна проблема с проверкой сертификата. Пожалуйста, используйте Safari или другой браузер. Chrome использует более строгую проверку сертификатов.')
-          }
-          
-          throw new Error('Не удалось подключиться к серверу. Проверьте подключение к интернету и попробуйте позже.')
-        }
-        
-        // Если это неизвестная ошибка, показываем общее сообщение
-        throw new Error('Произошла ошибка при загрузке данных. Пожалуйста, попробуйте позже.')
-      }
-      
-      // Обработка статуса 204 - данные не найдены
-      if (response.status === 204) {
+      // Обработка статуса 204 (данные не найдены)
+      if (data === null) {
         setNoData(true)
         setData(null)
         setLoading(false)
         return
       }
-      
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => '')
-        console.error('Response error:', response.status, errorText)
-        throw new Error(`Сервер вернул ошибку с кодом ${response.status}`)
-      }
-      
-      const data = await response.json()
-      
-      console.log('Data:', data)
       
       // Проверяем данные: могут быть массивом или объектом
       if (!data) {
@@ -400,64 +250,32 @@ function App() {
       
       setData(data)
       
-      // Сохраняем поиск в историю только для адресов (сохраняем исходный адрес)
+      // Сохраняем поиск в историю только для адресов
       if (searchType === 'address') {
         saveSearchToHistory(originalAddress, countRoom)
-        // Обновляем историю в UI
         setHistoryRefresh(prev => prev + 1)
       }
       
-      // Отправка данных на webhook после успешного анализа
-      try {
+      // Отправка данных на webhook (не блокируем UI)
+      if (telegramUser) {
         const webhookData = {
-          telegramId: telegramUser?.id || null,
-          address: data?.address || fullAddress,
+          telegramId: telegramUser.id || null,
+          address: data?.address || originalAddress,
           countRoom: countRoom,
-          firstName: telegramUser?.first_name || null
+          firstName: telegramUser.first_name || null
         }
         
-        // Отправляем запрос на webhook (не ждем ответа, чтобы не блокировать UI)
-        fetch('https://my-traffic.space/webhook/analyze', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(webhookData)
-        }).catch(webhookError => {
-          // Логируем ошибку, но не показываем пользователю
-          console.error('Ошибка при отправке данных на webhook:', webhookError)
+        apiClient.post('https://my-traffic.space/webhook/analyze', webhookData).catch(err => {
+          console.error('Ошибка при отправке данных на webhook:', err)
         })
-      } catch (webhookErr) {
-        // Игнорируем ошибки webhook, чтобы не влиять на основной функционал
-        console.error('Ошибка при подготовке данных для webhook:', webhookErr)
       }
     } catch (err) {
       console.error('Ошибка при загрузке данных:', err)
-      
-      // Более понятные сообщения об ошибках
-      let errorMessage = 'Произошла ошибка при загрузке данных'
-      const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)
-      
-      if (err.message.includes('сертификат') || err.message.includes('Chrome блокирует')) {
-        // Если сообщение уже содержит информацию о Chrome, используем его
-        if (err.message.includes('Chrome')) {
-          errorMessage = err.message
-        } else if (isChrome) {
-          errorMessage = 'Chrome блокирует подключение из-за проверки сертификата. Пожалуйста, используйте Safari или другой браузер.'
-        } else {
-          errorMessage = 'Проблема с сертификатом безопасности сервера. Пожалуйста, попробуйте позже или обратитесь к администратору.'
-        }
-      } else if (err.message.includes('подключиться')) {
-        errorMessage = 'Не удалось подключиться к серверу. Проверьте подключение к интернету.'
-      } else if (err.message) {
-        errorMessage = err.message
-      }
-      
-      setError(errorMessage)
+      setError(err.message || 'Произошла ошибка при загрузке данных')
     } finally {
       setLoading(false)
     }
-  }
+  }, [telegramUser])
 
   const handleSelectFromHistory = (address, countRoom) => {
     // Устанавливаем значения в форму и выполняем поиск
@@ -472,7 +290,8 @@ function App() {
     setCitiesError(null)
   }
 
-  const handleGetAllCities = async () => {
+  // Оптимизированная функция загрузки всех городов
+  const handleGetAllCities = useCallback(async () => {
     setCitiesLoading(true)
     setCitiesError(null)
     setCitiesData(null)
@@ -481,31 +300,10 @@ function App() {
     setNoData(false)
 
     try {
-      const baseUrl = getApiBaseUrl()
-      const params = new URLSearchParams()
-      params.append('page', '0')
-      params.append('size', '50')
-      
-      const apiUrl = `${baseUrl}/ads/analytic/city/all?${params.toString()}`
-      
-      console.log('Запрос к API для всех городов:', apiUrl)
-      
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        mode: 'cors',
-        cache: 'no-cache',
-        credentials: 'omit',
-        headers: {
-          'Accept': 'application/json',
-        },
+      const data = await apiClient.get('/ads/analytic/city/all', {
+        page: '0',
+        size: '50',
       })
-
-      if (!response.ok) {
-        throw new Error(`Сервер вернул ошибку с кодом ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log('Данные всех городов:', data)
       
       if (!data || !data.content || data.content.length === 0) {
         setCitiesError('Данные не найдены')
@@ -519,75 +317,66 @@ function App() {
     } finally {
       setCitiesLoading(false)
     }
-  }
+  }, [])
 
 
-  const handleBackFromCities = () => {
+  // Мемоизированные функции навигации
+  const handleBackFromCities = useCallback(() => {
     setCitiesData(null)
     setCitiesError(null)
-  }
+  }, [])
 
-  const handleNavigateToInvesting = () => {
-    // Проверяем авторизацию перед переходом
+  const clearAllData = useCallback(() => {
+    setData(null)
+    setError(null)
+    setCitiesData(null)
+    setCitiesError(null)
+  }, [])
+
+  const handleNavigateToInvesting = useCallback(() => {
     const authorized = isInvestingAuthorized()
     if (authorized) {
       const path = getPathFromScreen('investing')
       window.history.pushState({ screen: 'investing' }, '', path)
       setCurrentScreen('investing')
-      setData(null)
-      setError(null)
-      setCitiesData(null)
-      setCitiesError(null)
+      clearAllData()
     } else {
-      // Открываем модальное окно авторизации
       setIsInvestingAuthModalOpen(true)
     }
-  }
+  }, [clearAllData])
 
-  const handleInvestingAuthSuccess = () => {
+  const handleInvestingAuthSuccess = useCallback(() => {
     setInvestingAuthStatus(true)
     const path = getPathFromScreen('investing')
     window.history.pushState({ screen: 'investing' }, '', path)
     setCurrentScreen('investing')
-    setData(null)
-    setError(null)
-    setCitiesData(null)
-    setCitiesError(null)
-  }
+    clearAllData()
+  }, [clearAllData])
 
-  const handleInvestingAuthModalClose = () => {
+  const handleInvestingAuthModalClose = useCallback(() => {
     setIsInvestingAuthModalOpen(false)
-  }
+  }, [])
 
-  const handleBackFromInvesting = () => {
+  const handleBackFromInvesting = useCallback(() => {
     const path = getPathFromScreen('search')
     window.history.pushState({ screen: 'search' }, '', path)
     setCurrentScreen('search')
-    setData(null)
-    setError(null)
-    setCitiesData(null)
-    setCitiesError(null)
-  }
+    clearAllData()
+  }, [clearAllData])
 
-  const handleNavigateToSearch = () => {
+  const handleNavigateToSearch = useCallback(() => {
     const path = getPathFromScreen('search')
     window.history.pushState({ screen: 'search' }, '', path)
     setCurrentScreen('search')
-    setData(null)
-    setError(null)
-    setCitiesData(null)
-    setCitiesError(null)
-  }
+    clearAllData()
+  }, [clearAllData])
 
-  const handleNavigateToUrgentBuy = () => {
+  const handleNavigateToUrgentBuy = useCallback(() => {
     const path = getPathFromScreen('urgent-buy')
     window.history.pushState({ screen: 'urgent-buy' }, '', path)
     setCurrentScreen('urgent-buy')
-    setData(null)
-    setError(null)
-    setCitiesData(null)
-    setCitiesError(null)
-  }
+    clearAllData()
+  }, [clearAllData])
 
   // Показываем начальный лоадер
   if (initialLoading) {
@@ -616,12 +405,16 @@ function App() {
             onSuccess={handleInvestingAuthSuccess}
           />
           {currentScreen === 'investing' ? (
-            <Investing />
+            <Suspense fallback={<Loader />}>
+              <Investing />
+            </Suspense>
           ) : currentScreen === 'urgent-buy' ? (
-            <UrgentBuyPage 
-              onNavigateToSearch={handleNavigateToSearch}
-              onNavigateToInvesting={handleNavigateToInvesting}
-            />
+            <Suspense fallback={<Loader />}>
+              <UrgentBuyPage 
+                onNavigateToSearch={handleNavigateToSearch}
+                onNavigateToInvesting={handleNavigateToInvesting}
+              />
+            </Suspense>
           ) : (
           <>
           <SearchForm 
@@ -671,10 +464,12 @@ function App() {
             </div>
           )}
           {citiesData && !citiesLoading && (
-            <CitiesAnalytics 
-              data={citiesData} 
-              onBack={handleBackFromCities}
-            />
+            <Suspense fallback={<Loader />}>
+              <CitiesAnalytics 
+                data={citiesData} 
+                onBack={handleBackFromCities}
+              />
+            </Suspense>
           )}
           {loading && !citiesLoading && <Loader />}
           {error && !citiesError && (
@@ -687,7 +482,11 @@ function App() {
               <p>{error}</p>
             </div>
           )}
-          {data && !loading && !citiesData && <Results data={data} onNewSearch={handleNewSearch} />}
+          {data && !loading && !citiesData && (
+            <Suspense fallback={<Loader />}>
+              <Results data={data} onNewSearch={handleNewSearch} />
+            </Suspense>
+          )}
           </>
           )}
         </main>

@@ -76,7 +76,7 @@ const UrgentBuyPage = ({ onNavigateToSearch, onNavigateToInvesting }) => {
       <section className="urgent-buy-hero">
         <div className="urgent-buy-hero-content">
           <h1 className="urgent-buy-title">
-            Срочная покупка недвижимости в Мурманске и области
+            Покупаем недвижимость в Мурманске и области
           </h1>
           <p className="urgent-buy-subtitle">
             Компания <strong>«МурманКлик»</strong> выкупает недвижимость быстро, безопасно и по честной цене. 
@@ -181,8 +181,9 @@ const UrgentBuyPage = ({ onNavigateToSearch, onNavigateToInvesting }) => {
             </div>
             <h3 className="benefit-title">Честная цена на основе реальной аналитики</h3>
             <p className="benefit-description">
-              Используем собственный сервис анализа рынка для точной оценки. Вы можете получить предварительную оценку онлайн 
-              и убедиться в справедливости цены. Никаких занижений — только реальная рыночная стоимость на основе данных.
+              Собственный сервис анализа рынка для точной оценки.<br/>
+              Предварительная оценка онлайн — убедитесь в справедливости цены.<br/>
+              Никаких занижений, только реальная рыночная стоимость.
             </p>
           </div>
 
@@ -195,8 +196,9 @@ const UrgentBuyPage = ({ onNavigateToSearch, onNavigateToInvesting }) => {
             </div>
             <h3 className="benefit-title">Гарантия сделки и быстрый расчёт</h3>
             <p className="benefit-description">
-              От заявки до расчёта — 3-7 рабочих дней. <strong>Гарантируем</strong>, что сделка состоится, 
-              деньги будут на вашем счёте в оговоренные сроки. Не нужно ждать покупателей месяцами, проводить показы и вести переговоры.
+              От заявки до расчёта — 3-7 рабочих дней.<br/>
+              <strong>Гарантируем</strong> сделку и деньги на вашем счёте в срок.<br/>
+              Без ожидания покупателей, показов и долгих переговоров.
             </p>
           </div>
 
@@ -212,8 +214,9 @@ const UrgentBuyPage = ({ onNavigateToSearch, onNavigateToInvesting }) => {
             </div>
             <h3 className="benefit-title">Юридическое сопровождение и безопасность</h3>
             <p className="benefit-description">
-              Полная проверка документов и прав. Все сделки оформляются официально у нотариуса или в офисе партнёра. 
-              Гарантируем юридическую чистоту сделки. Вы защищены от любых рисков.
+              Полная проверка документов и прав.<br/>
+              Официальное оформление у нотариуса или в офисе партнёра.<br/>
+              Гарантируем юридическую чистоту — вы защищены от рисков.
             </p>
           </div>
 
@@ -226,8 +229,9 @@ const UrgentBuyPage = ({ onNavigateToSearch, onNavigateToInvesting }) => {
             </div>
             <h3 className="benefit-title">Работаем со сложными ситуациями</h3>
             <p className="benefit-description">
-              Покупаем квартиры с ипотекой, долгами, обременениями, арестами. Помогаем решить любые юридические вопросы в рамках сделки. 
-              Не отказываем в сложных случаях — находим решение для каждой ситуации.
+              Покупаем объекты с ипотекой, долгами, обременениями, арестами.<br/>
+              Помогаем решить любые юридические вопросы в рамках сделки.<br/>
+              Не отказываем в сложных случаях — находим решение.
             </p>
           </div>
         </div>
@@ -336,7 +340,8 @@ const UrgentBuyPage = ({ onNavigateToSearch, onNavigateToInvesting }) => {
             <div>
               <h3 className="why-now-title">Рынок волатилен</h3>
               <p className="why-now-description">
-                Цены меняются быстро. Продажа через МурманКлик позволяет зафиксировать выгодную цену без долгого ожидания.
+                Цены меняются быстро.<br/>
+                Зафиксируйте выгодную цену без долгого ожидания.
               </p>
             </div>
           </div>
@@ -351,7 +356,8 @@ const UrgentBuyPage = ({ onNavigateToSearch, onNavigateToInvesting }) => {
             <div>
               <h3 className="why-now-title">Экономия времени</h3>
               <p className="why-now-description">
-                Не нужно заниматься показами, переговорами и торгами самому. Мы берём всё на себя.
+                Без показов, переговоров и торгов.<br/>
+                Мы берём всё на себя.
               </p>
             </div>
           </div>
@@ -366,7 +372,8 @@ const UrgentBuyPage = ({ onNavigateToSearch, onNavigateToInvesting }) => {
             <div>
               <h3 className="why-now-title">Честная цена</h3>
               <p className="why-now-description">
-                Не теряете в стоимости. Наша оценка основана на реальной аналитике рынка, без занижений.
+                Не теряете в стоимости.<br/>
+                Оценка на основе реальной аналитики рынка, без занижений.
               </p>
             </div>
           </div>
@@ -380,7 +387,8 @@ const UrgentBuyPage = ({ onNavigateToSearch, onNavigateToInvesting }) => {
             <div>
               <h3 className="why-now-title">Быстрое решение</h3>
               <p className="why-now-description">
-                От заявки до расчёта — всего несколько дней. Идеально для срочных ситуаций.
+                От заявки до расчёта — несколько дней.<br/>
+                Идеально для срочных ситуаций.
               </p>
             </div>
           </div>
