@@ -1,0 +1,76 @@
+/**
+ * Design Tokens: Typography
+ * Типографическая шкала для UI-kit
+ */
+
+:root {
+  /* Font families */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+
+  /* Font sizes */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
+
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Letter spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+
+  /* Component-specific typography */
+  --typography-button-font-size: var(--font-size-base);
+  --typography-button-font-weight: var(--font-weight-semibold);
+  --typography-button-line-height: var(--line-height-tight);
+
+  --typography-input-font-size: var(--font-size-base);
+  --typography-input-line-height: var(--line-height-normal);
+
+  --typography-label-font-size: var(--font-size-sm);
+  --typography-label-font-weight: var(--font-weight-medium);
+  --typography-label-line-height: var(--line-height-normal);
+
+  --typography-heading-1-font-size: var(--font-size-4xl);
+  --typography-heading-1-font-weight: var(--font-weight-extrabold);
+  --typography-heading-1-line-height: var(--line-height-tight);
+
+  --typography-heading-2-font-size: var(--font-size-3xl);
+  --typography-heading-2-font-weight: var(--font-weight-bold);
+  --typography-heading-2-line-height: var(--line-height-snug);
+
+  --typography-heading-3-font-size: var(--font-size-2xl);
+  --typography-heading-3-font-weight: var(--font-weight-bold);
+  --typography-heading-3-line-height: var(--line-height-snug);
+
+  --typography-body-font-size: var(--font-size-base);
+  --typography-body-line-height: var(--line-height-relaxed);
+
+  --typography-caption-font-size: var(--font-size-sm);
+  --typography-caption-line-height: var(--line-height-normal);
+  --typography-caption-color: var(--color-text-secondary);
+}
+

@@ -1,0 +1,51 @@
+/**
+ * Card component styles
+ */
+
+.ui-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  transition: all var(--transition-card);
+}
+
+.ui-card--default {
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+.ui-card--elevated {
+  border: none;
+  box-shadow: var(--shadow-card-hover);
+}
+
+.ui-card--elevated:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.ui-card--outlined {
+  border: 1px solid var(--color-border);
+  box-shadow: none;
+}
+
+.ui-card--outlined:hover {
+  border-color: var(--color-neutral-400);
+}
+
+/* Padding variants */
+.ui-card--padding-none {
+  padding: 0;
+}
+
+.ui-card--padding-sm {
+  padding: var(--spacing-card-padding-sm);
+}
+
+.ui-card--padding-md {
+  padding: var(--spacing-card-padding);
+}
+
+.ui-card--padding-lg {
+  padding: var(--spacing-card-padding-lg);
+}
+

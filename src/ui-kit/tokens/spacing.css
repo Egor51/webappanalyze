@@ -1,0 +1,48 @@
+/**
+ * Design Tokens: Spacing
+ * Шкала отступов для UI-kit
+ * Основана на 4px grid system
+ */
+
+:root {
+  /* Spacing scale (4px base) */
+  --spacing-0: 0;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+
+  /* Component-specific spacing */
+  --spacing-button-padding-x: var(--spacing-4);
+  --spacing-button-padding-y: var(--spacing-3);
+  --spacing-button-padding-x-lg: var(--spacing-6);
+  --spacing-button-padding-y-lg: var(--spacing-4);
+  --spacing-button-padding-x-sm: var(--spacing-3);
+  --spacing-button-padding-y-sm: var(--spacing-2);
+
+  --spacing-input-padding-x: var(--spacing-4);
+  --spacing-input-padding-y: var(--spacing-3);
+  
+  --spacing-card-padding: var(--spacing-6);
+  --spacing-card-padding-sm: var(--spacing-4);
+  --spacing-card-padding-lg: var(--spacing-8);
+  
+  --spacing-section-gap: var(--spacing-8);
+  --spacing-section-gap-sm: var(--spacing-6);
+  --spacing-section-gap-lg: var(--spacing-12);
+  
+  --spacing-gap-xs: var(--spacing-1);
+  --spacing-gap-sm: var(--spacing-2);
+  --spacing-gap-md: var(--spacing-4);
+  --spacing-gap-lg: var(--spacing-6);
+  --spacing-gap-xl: var(--spacing-8);
+}
+

@@ -1,27 +1,28 @@
-import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react'
+import { useState, useEffect, lazy, Suspense, useCallback } from 'react'
 import { ThemeProvider } from './context/ThemeContext'
-import Header from './components/Header'
-import SearchForm from './components/SearchForm'
-import SearchHistory from './components/SearchHistory'
-import Loader from './components/Loader'
-import Instructions from './components/Instructions'
-import AllCitiesBlock from './components/AllCitiesBlock'
-import InvestingAuthModal from './components/InvestingAuthModal'
-import { saveSearchToHistory } from './utils/searchHistory'
-import { isInvestingAuthorized } from './utils/investingAuth'
-import { apiClient } from './api/client'
-import { normalizeAddress } from './utils/formatters'
+import Header from './shared/components/Header'
+import SearchForm from './domains/search/components/SearchForm'
+import SearchHistory from './domains/search/components/SearchHistory'
+import Loader from './shared/components/Loader'
+import Instructions from './domains/search/components/Instructions'
+import AllCitiesBlock from './domains/search/components/AllCitiesBlock'
+import InvestingAuthModal from './domains/investing/components/InvestingAuthModal'
+import PushNotification from './shared/components/PushNotification'
+import { useInvestingAuth } from './domains/auth/hooks'
+import { apiClient } from './lib/api-client'
+import { useSearchMutation } from './domains/search/hooks'
+import { logger } from './shared/utils/logger'
+import { isInvestingAuthorized } from './shared/utils/investingAuth'
 import './App.css'
 
 // Lazy loading для тяжелых компонентов
-const Results = lazy(() => import('./components/Results'))
-const CitiesAnalytics = lazy(() => import('./components/CitiesAnalytics'))
-const Investing = lazy(() => import('./components/Investing'))
-const UrgentBuyPage = lazy(() => import('./components/UrgentBuyPage'))
+const Results = lazy(() => import('./domains/search/components/Results'))
+const CitiesAnalytics = lazy(() => import('./domains/search/components/CitiesAnalytics'))
+const Investing = lazy(() => import('./domains/investing/components/Investing'))
+const UrgentBuyPage = lazy(() => import('./domains/urgent-sale/components/UrgentBuyPage'))
 
 function App() {
   const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [noData, setNoData] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -33,7 +34,20 @@ function App() {
   const [citiesError, setCitiesError] = useState(null)
   const [currentScreen, setCurrentScreen] = useState('search') // 'search', 'investing' или 'urgent-buy'
   const [isInvestingAuthModalOpen, setIsInvestingAuthModalOpen] = useState(false)
-  const [investingAuthStatus, setInvestingAuthStatus] = useState(false)
+  const [_investingAuthStatus, setInvestingAuthStatus] = useState(false)
+  const [isTelegramUser, setIsTelegramUser] = useState(false)
+  const [isTelegramNotificationClosed, setIsTelegramNotificationClosed] = useState(false)
+  const [isUrgentBuyNotificationClosed, setIsUrgentBuyNotificationClosed] = useState(false)
+  const [showTelegramPush, setShowTelegramPush] = useState(false)
+  const [showUrgentBuyPush, setShowUrgentBuyPush] = useState(false)
+  const [showUrgentBuyPushAfterReport, setShowUrgentBuyPushAfterReport] = useState(false)
+  const [isUrgentBuyAfterReportClosed, setIsUrgentBuyAfterReportClosed] = useState(false)
+
+  // React Query mutation для поиска (объявляем до всех useEffect, которые его используют)
+  const searchMutation = useSearchMutation()
+
+  // Синхронизируем loading состояние с mutation (объявляем до использования в useEffect)
+  const loading = searchMutation.isPending
 
   // Функция для определения экрана по пути
   const getScreenFromPath = (pathname) => {
@@ -85,10 +99,14 @@ function App() {
     return basePath + path
   }
 
+  // React Query hook для проверки авторизации инвестиций
+  const { data: investingAuth, isLoading: authLoading } = useInvestingAuth()
+
   useEffect(() => {
-    // Проверяем авторизацию для раздела инвестиций
-    const authorized = isInvestingAuthorized()
-    setInvestingAuthStatus(authorized)
+    // Синхронизируем статус авторизации из React Query
+    if (investingAuth) {
+      setInvestingAuthStatus(investingAuth.isAuthorized)
+    }
 
     // Определяем экран по текущему пути
     const pathname = window.location.pathname
@@ -111,7 +129,7 @@ function App() {
     }
 
     // Обработчик навигации назад/вперед
-    const handlePopState = (event) => {
+    const handlePopState = (_event) => {
       const newPathname = window.location.pathname
       const newScreen = getScreenFromPath(newPathname)
       setCurrentScreen(newScreen)
@@ -121,7 +139,47 @@ function App() {
     return () => {
       window.removeEventListener('popstate', handlePopState)
     }
-  }, [])
+  }, [investingAuth])
+
+  // Задержка показа push-уведомлений (4 секунды)
+  useEffect(() => {
+    // Сбрасываем состояние показа при смене экрана
+    setShowTelegramPush(false)
+    setShowUrgentBuyPush(false)
+
+    // Запускаем таймер на 4 секунды
+    const timer = setTimeout(() => {
+      if (currentScreen === 'search' && !isTelegramUser && !isTelegramNotificationClosed) {
+        setShowTelegramPush(true)
+      }
+      if (currentScreen === 'urgent-buy' && !isUrgentBuyNotificationClosed) {
+        setShowUrgentBuyPush(true)
+      }
+    }, 4000)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [currentScreen, isTelegramUser, isTelegramNotificationClosed, isUrgentBuyNotificationClosed])
+
+  // Push-уведомление после получения отчета по оценке адреса (после ответа от сервера)
+  useEffect(() => {
+    // Сбрасываем состояние при изменении данных
+    setShowUrgentBuyPushAfterReport(false)
+
+    // Если загрузка завершена, есть данные и это поиск по адресу, запускаем таймер
+    // Таймер запускается после получения ответа от сервера (когда loading становится false)
+    // Используем searchMutation.isPending напрямую, чтобы избежать проблем с порядком инициализации
+    if (!searchMutation.isPending && data && searchType === 'address' && currentScreen === 'search' && !isUrgentBuyAfterReportClosed) {
+      const timer = setTimeout(() => {
+        setShowUrgentBuyPushAfterReport(true)
+      }, 4000)
+
+      return () => {
+        clearTimeout(timer)
+      }
+    }
+  }, [searchMutation.isPending, data, searchType, currentScreen, isUrgentBuyAfterReportClosed])
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -138,19 +196,12 @@ function App() {
       const user = tg.initDataUnsafe?.user
       if (user) {
         setTelegramUser(user)
-        console.log('Данные пользователя Telegram:', {
-          id: user.id,
-          firstName: user.first_name,
-          lastName: user.last_name,
-          username: user.username,
-          languageCode: user.language_code,
-          isPremium: user.is_premium,
-          photoUrl: user.photo_url
-        })
+        setIsTelegramUser(true)
+        logger.info('Данные пользователя Telegram', user, { context: 'Telegram', sanitize: true })
       }
       
-      // Другие доступные данные:
-      console.log('Дополнительные данные Telegram:', {
+      // Другие доступные данные (только в dev режиме):
+      logger.debug('Дополнительные данные Telegram', {
         version: tg.version,
         platform: tg.platform,
         colorScheme: tg.colorScheme,
@@ -159,9 +210,10 @@ function App() {
         headerColor: tg.headerColor,
         backgroundColor: tg.backgroundColor,
         isExpanded: tg.isExpanded,
-        initData: tg.initData, // Строка с данными инициализации
-        initDataUnsafe: tg.initDataUnsafe // Объект с распарсенными данными
-      })
+        // Не логируем initData и initDataUnsafe - могут содержать чувствительные данные
+      }, { context: 'Telegram', sanitize: true })
+    } else {
+      setIsTelegramUser(false)
     }
     
     // Ждем загрузки DOM и минимальное время для плавности
@@ -182,100 +234,52 @@ function App() {
     initApp()
   }, [])
 
-  // Оптимизированная функция поиска с использованием API-клиента
+  // Оптимизированная функция поиска с использованием React Query
   const handleSearch = useCallback(async (address, countRoom, searchType = 'address', propertyType = 'all') => {
-    setLoading(true)
     setError(null)
     setData(null)
     setNoData(false)
 
-    // Сохраняем исходный адрес для истории
-    const originalAddress = address.trim()
-
     try {
-      // Проверяем, нужно ли добавлять параметр countRoom
-      const shouldIncludeCountRoom = countRoom !== 'Весь' && countRoom !== 'Весь район' && countRoom !== 'Весь город'
-      
-      // Преобразуем propertyType в houseMaterial
-      const houseMaterialValue = propertyType === 'new' ? 'Новостройка' : propertyType === 'secondary' ? 'Вторичка' : null
-      
-      let data
-      
-      if (searchType === 'city') {
-        const params = {
-          city: originalAddress,
-          ...(shouldIncludeCountRoom && { countRoom }),
-          ...(houseMaterialValue && { houseMaterial: houseMaterialValue }),
-        }
-        data = await apiClient.get('/ads/analytic/city', params)
-      } else if (searchType === 'district') {
-        const params = {
-          district: originalAddress,
-          ...(shouldIncludeCountRoom && { countRoom }),
-          ...(houseMaterialValue && { houseMaterial: houseMaterialValue }),
-        }
-        data = await apiClient.get('/ads/analytic/district', params)
-      } else {
-        // Запрос по адресу
-        const fullAddress = normalizeAddress(originalAddress)
-        const params = {
-          street: fullAddress,
-          countRoom,
-        }
-        data = await apiClient.get('/ads/analytic/v1.1', params)
-      }
-      
-      // Обработка статуса 204 (данные не найдены)
-      if (data === null) {
+      const result = await searchMutation.mutateAsync({
+        address,
+        countRoom,
+        searchType,
+        propertyType,
+      })
+
+      // Обработка результата
+      if (result.isEmpty) {
         setNoData(true)
         setData(null)
-        setLoading(false)
         return
       }
-      
-      // Проверяем данные: могут быть массивом или объектом
-      if (!data) {
-        throw new Error('Данные не найдены')
-      }
-      
-      // Если данные - массив, проверяем что он не пустой
-      if (Array.isArray(data) && data.length === 0) {
-        throw new Error('Данные не найдены')
-      }
-      
-      // Если данные - объект, проверяем наличие обязательных полей
-      if (!Array.isArray(data) && !data.address && !data.price) {
-        throw new Error('Данные не найдены')
-      }
-      
-      setData(data)
-      
-      // Сохраняем поиск в историю только для адресов
+
+      setData(result.data)
+
+      // Обновляем историю для адресов
       if (searchType === 'address') {
-        saveSearchToHistory(originalAddress, countRoom)
         setHistoryRefresh(prev => prev + 1)
       }
-      
+
       // Отправка данных на webhook (не блокируем UI)
       if (telegramUser) {
         const webhookData = {
           telegramId: telegramUser.id || null,
-          address: data?.address || originalAddress,
+          address: result.data?.address || address.trim(),
           countRoom: countRoom,
-          firstName: telegramUser.first_name || null
+          firstName: telegramUser.first_name || null,
         }
-        
+
         apiClient.post('https://my-traffic.space/webhook/analyze', webhookData).catch(err => {
-          console.error('Ошибка при отправке данных на webhook:', err)
+          logger.error('Ошибка при отправке данных на webhook', err, { context: 'Webhook' })
         })
       }
     } catch (err) {
-      console.error('Ошибка при загрузке данных:', err)
+      logger.error('Ошибка при загрузке данных', err, { context: 'Search' })
       setError(err.message || 'Произошла ошибка при загрузке данных')
-    } finally {
-      setLoading(false)
     }
-  }, [telegramUser])
+  }, [searchMutation, telegramUser])
 
   const handleSelectFromHistory = (address, countRoom) => {
     // Устанавливаем значения в форму и выполняем поиск
@@ -312,7 +316,7 @@ function App() {
 
       setCitiesData(data)
     } catch (err) {
-      console.error('Ошибка при загрузке данных всех городов:', err)
+      logger.error('Ошибка при загрузке данных всех городов', err, { context: 'Cities' })
       setCitiesError(err.message || 'Произошла ошибка при загрузке данных')
     } finally {
       setCitiesLoading(false)
@@ -357,7 +361,7 @@ function App() {
     setIsInvestingAuthModalOpen(false)
   }, [])
 
-  const handleBackFromInvesting = useCallback(() => {
+  const _handleBackFromInvesting = useCallback(() => {
     const path = getPathFromScreen('search')
     window.history.pushState({ screen: 'search' }, '', path)
     setCurrentScreen('search')
@@ -405,11 +409,11 @@ function App() {
             onSuccess={handleInvestingAuthSuccess}
           />
           {currentScreen === 'investing' ? (
-            <Suspense fallback={<Loader />}>
+            <Suspense fallback={<Loader text="Загрузка инвестиций..." />}>
               <Investing />
             </Suspense>
           ) : currentScreen === 'urgent-buy' ? (
-            <Suspense fallback={<Loader />}>
+            <Suspense fallback={<Loader text="Загрузка страницы..." />}>
               <UrgentBuyPage 
                 onNavigateToSearch={handleNavigateToSearch}
                 onNavigateToInvesting={handleNavigateToInvesting}
@@ -464,14 +468,14 @@ function App() {
             </div>
           )}
           {citiesData && !citiesLoading && (
-            <Suspense fallback={<Loader />}>
+            <Suspense fallback={<Loader text="Загрузка аналитики городов..." />}>
               <CitiesAnalytics 
                 data={citiesData} 
                 onBack={handleBackFromCities}
               />
             </Suspense>
           )}
-          {loading && !citiesLoading && <Loader />}
+          {loading && !citiesLoading && <Loader text="Поиск данных..." />}
           {error && !citiesError && (
             <div className="error-message">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -483,7 +487,7 @@ function App() {
             </div>
           )}
           {data && !loading && !citiesData && (
-            <Suspense fallback={<Loader />}>
+            <Suspense fallback={<Loader text="Загрузка результатов..." />}>
               <Results data={data} onNewSearch={handleNewSearch} />
             </Suspense>
           )}
@@ -491,6 +495,87 @@ function App() {
           )}
         </main>
       </div>
+      {/* Подсчет активных push-уведомлений для правильного позиционирования */}
+      {(() => {
+        const activeNotifications = []
+        let notificationIndex = 0
+
+        // Push-уведомление после получения отчета по оценке адреса (самое новое - сверху)
+        const showAfterReport = showUrgentBuyPushAfterReport && currentScreen === 'search' && !isUrgentBuyAfterReportClosed
+        if (showAfterReport) {
+          activeNotifications.push(
+            <PushNotification
+              key="after-report"
+              show={true}
+              index={notificationIndex++}
+              title="Продай недвижимость быстро"
+              message="Заполни заявку"
+              iconClassName="urgent-buy-push urgent-buy-icon"
+              icon={
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+              }
+              onClick={() => {
+                handleNavigateToUrgentBuy()
+                // Прокручиваем к форме заявки после небольшой задержки для загрузки страницы
+                setTimeout(() => {
+                  const formSection = document.querySelector('.urgent-buy-form-section')
+                  if (formSection) {
+                    formSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                }, 100)
+              }}
+              onClose={() => setIsUrgentBuyAfterReportClosed(true)}
+            />
+          )
+        }
+
+        // Push-уведомление для перехода в Telegram (только для не-Telegram пользователей)
+        const showTelegram = showTelegramPush && !isTelegramUser && currentScreen === 'search' && !isTelegramNotificationClosed
+        if (showTelegram) {
+          activeNotifications.push(
+            <PushNotification
+              key="telegram"
+              show={true}
+              index={notificationIndex++}
+              title="Переходите в Telegram"
+              message="Там удобнее"
+              icon={
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
+                </svg>
+              }
+              onClick={() => window.open('https://t.me/murmanclick_bot', '_blank')}
+              onClose={() => setIsTelegramNotificationClosed(true)}
+            />
+          )
+        }
+
+        return activeNotifications
+      })()}
+      {/* Push-уведомление для страницы "Продать" */}
+      <PushNotification
+        show={showUrgentBuyPush && currentScreen === 'urgent-buy' && !isUrgentBuyNotificationClosed}
+        index={0}
+        title="Продай недвижимость быстро"
+        message="Заполни заявку"
+        iconClassName="urgent-buy-push urgent-buy-icon"
+        icon={
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        }
+        onClick={() => {
+          const formSection = document.querySelector('.urgent-buy-form-section');
+          if (formSection) {
+            formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }}
+        onClose={() => setIsUrgentBuyNotificationClosed(true)}
+      />
     </ThemeProvider>
   )
 }

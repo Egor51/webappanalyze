@@ -1,0 +1,63 @@
+/**
+ * Design Tokens: Index
+ * Импорт всех токенов UI-kit
+ */
+
+@import './colors.css';
+@import './spacing.css';
+@import './shadows.css';
+@import './typography.css';
+
+/**
+ * Border radius tokens
+ */
+:root {
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Component-specific radius */
+  --radius-button: var(--radius-lg);
+  --radius-button-sm: var(--radius-md);
+  --radius-button-lg: var(--radius-xl);
+  --radius-input: var(--radius-md);
+  --radius-card: var(--radius-xl);
+  --radius-modal: var(--radius-xl);
+  --radius-alert: var(--radius-lg);
+}
+
+/**
+ * Transition tokens
+ */
+:root {
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-slower: 500ms ease;
+
+  /* Component-specific transitions */
+  --transition-button: var(--transition-base);
+  --transition-input: var(--transition-base);
+  --transition-card: var(--transition-base);
+  --transition-modal: var(--transition-slow);
+}
+
+/**
+ * Z-index scale
+ */
+:root {
+  --z-index-base: 0;
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+  --z-index-notification: 10000;
+}
+

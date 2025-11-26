@@ -5,9 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#000000" />
     <title>MurmanClick - Оценка недвижимости</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
+    
+    <!-- Preconnect для внешних ресурсов (улучшает загрузку) -->
+    <link rel="preconnect" href="https://telegram.org" crossorigin />
+    <link rel="preconnect" href="https://mc.yandex.ru" crossorigin />
+    <link rel="dns-prefetch" href="https://telegram.org" />
+    <link rel="dns-prefetch" href="https://mc.yandex.ru" />
+    
+    <!-- Критический CSS встроен в head для быстрой первой отрисовки -->
+    <style>
+      /* Критический CSS для начального экрана */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: #f8fafc;
+        color: #1e293b;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      /* Критический CSS для loader */
+      @keyframes housePulse {
+        0%, 100% { opacity: 1; transform: scale(1) translateY(0); }
+        50% { opacity: 0.9; transform: scale(1.05) translateY(-5px); }
+      }
+      @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+      @keyframes dotBounce {
+        0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+        40% { transform: translateY(-10px); opacity: 1; }
+      }
+      @keyframes progress {
+        0% { width: 0%; }
+        50% { width: 70%; }
+        100% { width: 100%; }
+      }
+    </style>
+    
+    <!-- Telegram Web App SDK - загружается асинхронно -->
+    <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
+    
+    <!-- Yandex.Metrika counter - загружается асинхронно -->
+    <script type="text/javascript" defer>
        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
        m[i].l=1*new Date();
        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
@@ -21,7 +68,6 @@
             webvisor:true
        });
     </script>
-    <!-- /Yandex.Metrika counter -->
   </head>
   <body>
     <noscript><div><img src="https://mc.yandex.ru/watch/105200711" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
@@ -52,26 +98,8 @@
         </div>
       </div>
     </div>
+    <!-- Основной скрипт приложения - загружается с type="module" (по умолчанию defer) -->
     <script type="module" src="/src/main.jsx"></script>
-    <style>
-      @keyframes housePulse {
-        0%, 100% { opacity: 1; transform: scale(1) translateY(0); }
-        50% { opacity: 0.9; transform: scale(1.05) translateY(-5px); }
-      }
-      @keyframes spin {
-        0% { transform: translate(-50%, -50%) rotate(0deg); }
-        100% { transform: translate(-50%, -50%) rotate(360deg); }
-      }
-      @keyframes dotBounce {
-        0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
-        40% { transform: translateY(-10px); opacity: 1; }
-      }
-      @keyframes progress {
-        0% { width: 0%; }
-        50% { width: 70%; }
-        100% { width: 100%; }
-      }
-    </style>
   </body>
 </html>
 

@@ -4,7 +4,7 @@
  * Рекомендуется использовать apiClient из '../api/client'
  */
 
-import { getApiBaseUrl as getBaseUrl } from '../api/client'
+import { getApiBaseUrl as getBaseUrl } from '../lib/api-client'
 
 // Конфигурация API endpoints
 export const API_CONFIG = {
